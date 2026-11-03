@@ -858,54 +858,50 @@ select.form-control {
   backdrop-filter: blur(4px);
 }
 
-/* # Crew Calling Buttons Overlay on Cockpit Viewport (Tenstar Exercise 2.1) */
-.crew-calling-overlay {
-  position: absolute;
-  top: 10px;
-  right: 10px;
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  max-width: 330px;
-  z-index: 10;
-  pointer-events: auto;
-}
-
-.crew-calling-card {
-  display: flex;
-  flex-direction: column;
-  gap: 0.2rem;
-  background: rgba(10, 15, 29, 0.90);
+/* # Tenstar Rigging & Load Operations Control Strip (Non-Obstructing Dedicated Dock) */
+.rigging-operations-bar {
+  display: grid;
+  grid-template-columns: 1.25fr 1.25fr 1fr;
+  gap: 0.65rem;
+  background: #0b1120;
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  padding: 0.4rem 0.6rem;
-  backdrop-filter: blur(6px);
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.6);
+  padding: 0.65rem 0.85rem;
+}
+
+.rigging-op-cell {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  background: #060913;
+  border: 1px solid #1e293b;
+  border-radius: 6px;
+  padding: 0.45rem 0.65rem;
   transition: all 0.2s ease;
 }
 
-.crew-calling-card:hover {
-  border-color: rgba(245, 158, 11, 0.5);
+.rigging-op-cell:hover {
+  border-color: rgba(245, 158, 11, 0.4);
 }
 
 .btn-crew {
+  width: 100%;
   background: linear-gradient(180deg, #1e293b 0%, #0f172a 100%);
-  border: 2px solid var(--border-strong);
+  border: 1.5px solid var(--border-strong);
   color: var(--text-primary);
   font-family: var(--font-display);
-  font-size: 0.8rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  padding: 0.5rem 0.8rem;
-  border-radius: 6px;
+  padding: 0.55rem 0.9rem;
+  border-radius: 5px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: 0.4rem;
   text-align: center;
-  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  letter-spacing: 0.03em;
+  transition: all 0.2s ease;
   box-shadow: 0 2px 5px rgba(0, 0, 0, 0.4);
-  text-transform: none;
 }
 
 .btn-crew:hover:not(:disabled) {
@@ -921,6 +917,7 @@ select.form-control {
 
 .btn-crew:disabled {
   cursor: not-allowed;
+  opacity: 0.5;
 }
 
 .btn-crew.pulse-ready {
@@ -1221,12 +1218,8 @@ select.form-control {
     min-height: auto;
   }
 
-  .crew-calling-overlay {
-    position: relative;
-    top: auto;
-    right: auto;
-    max-width: 100%;
-    margin: 0.5rem;
+  .rigging-operations-bar {
+    grid-template-columns: 1fr;
   }
 
   .joystick-touch-zone {
@@ -2850,6 +2843,30 @@ select.form-control {
           </div>
         </div>
 
+        <!-- Tenstar Rigging & Payload Operations Tactical Dock (Non-Obstructing Dedicated Dock) -->
+        <div class="rigging-operations-bar">
+          <div class="rigging-op-cell">
+            <button type="button" id="btn-call-ground-crew" class="btn-crew btn-ground-crew" onclick="if(window.CranePhysics) window.CranePhysics.callGroundCrew()">
+              <span>CALL GROUND CREW (RIG PAYLOAD)</span>
+            </button>
+            <div id="hint-ground-crew" class="crew-hint">Lower Hook to Ground Pickup Zone (R:16m, θ:45°, H&lt;3m) to Call</div>
+          </div>
+
+          <div class="rigging-op-cell">
+            <button type="button" id="btn-call-roof-crew" class="btn-crew btn-roof-crew" onclick="if(window.CranePhysics) window.CranePhysics.callRoofCrew()">
+              <span>CALL ROOF CREW (UNHOOK)</span>
+            </button>
+            <div id="hint-roof-crew" class="crew-hint">Deliver payload to 5th/6th Floor Deck to Unhook</div>
+          </div>
+
+          <div class="rigging-op-cell">
+            <button type="button" id="btn-toggle-magnet" class="btn-crew btn-mode-toggle" onclick="if(window.CranePhysics) window.CranePhysics.toggleRiggingMode()">
+              <span>MODE: <strong>RIGGER CREW</strong> (Switch to Magnet)</span>
+            </button>
+            <div class="crew-hint">Toggle Rigging: Ground/Roof Crew Sling vs Electro-Magnet</div>
+          </div>
+        </div>
+
         <!-- Cockpit Main Deck: Ergonomic Joystick Flanks + 2D Graphic Viewport -->
         <div class="cockpit-stage">
           <!-- Left Joystick Zone (Slew + Trolley) with touch-action: none -->
@@ -2877,30 +2894,6 @@ select.form-control {
               <span class="hud-chip" id="hud-operator-tag">OP: TF-TNS-2026-0842</span>
               <span class="hud-chip" id="hud-pendulum-tag">PENDULUM SWING: 0.0° (DAMPED)</span>
               <span class="hud-chip" id="hud-drop-status">TARGET DROP ZONE: IN BOUNDS</span>
-            </div>
-
-            <!-- Floating Calling Buttons Overlay (Tenstar Ground Crew & Electro-Magnet) -->
-            <div class="crew-calling-overlay">
-              <div class="crew-calling-card">
-                <button type="button" id="btn-call-ground-crew" class="btn-crew btn-ground-crew" onclick="if(window.CranePhysics) window.CranePhysics.callGroundCrew()">
-                  <span>📞👷 Call Ground Crew (Hook Load)</span>
-                </button>
-                <div id="hint-ground-crew" class="crew-hint">Lower Hook to Ground Pickup Zone (R:16m, θ:45°, H&lt;3m) to Call</div>
-              </div>
-
-              <div class="crew-calling-card">
-                <button type="button" id="btn-call-roof-crew" class="btn-crew btn-roof-crew" onclick="if(window.CranePhysics) window.CranePhysics.callRoofCrew()">
-                  <span>📞🏗️ Call 5th/6th Floor Crew (Unhook Load)</span>
-                </button>
-                <div id="hint-roof-crew" class="crew-hint">Deliver payload to 5th/6th Floor Deck to Unhook</div>
-              </div>
-
-              <div class="crew-calling-card">
-                <button type="button" id="btn-toggle-magnet" class="btn-crew btn-mode-toggle" onclick="if(window.CranePhysics) window.CranePhysics.toggleRiggingMode()">
-                  <span>🧲 Mode: <strong>GROUND/ROOF CREW</strong> (Click for Magnet)</span>
-                </button>
-                <div class="crew-hint">Toggle Rigging: Ground Crew Sling vs Electro-Magnet</div>
-              </div>
             </div>
           </div>
 
@@ -5528,7 +5521,7 @@ class CranePhysicsEngine {
         this.hasLoad = true;
         this.magnetEngaged = true;
         this.updateCallingButtonsDOM();
-        return { success: true, message: '⚡ Electro-Magnet Energized: Payload Attached Instantly!' };
+        return { success: true, message: 'Electro-Magnet Energized: Payload Attached Instantly!' };
       } else {
         return { success: false, reason: 'Hook must be within Ground Pickup Zone (R:16m, θ:45°, H<3m) to energize magnet!' };
       }
@@ -5544,7 +5537,7 @@ class CranePhysicsEngine {
     this.crewTimer = 0.0;
     this.crewSafetyBreach = false;
     this.updateCallingButtonsDOM();
-    return { success: true, message: '👷 Ground Crew Dispatched! Hold controls in neutral during rigging!' };
+    return { success: true, message: 'Ground Crew Dispatched: Hold controls in neutral during rigging.' };
   }
 
   // # Function: User triggers "Call Roof Crew" to detach and land payload
@@ -5574,7 +5567,7 @@ class CranePhysicsEngine {
           window.CareerTelemetry.awardLoadDeliveryBonus(15000);
         }
         this.updateCallingButtonsDOM();
-        return { success: true, message: '⚡ Electro-Magnet De-Energized: Payload Safely Released on Target Deck!' };
+        return { success: true, message: 'Electro-Magnet De-Energized: Payload Safely Released on Target Deck.' };
       } else {
         return { success: false, reason: 'Position payload onto target floor landing deck before releasing magnet!' };
       }
@@ -5591,7 +5584,7 @@ class CranePhysicsEngine {
     this.crewTimer = 0.0;
     this.crewSafetyBreach = false;
     this.updateCallingButtonsDOM();
-    return { success: true, message: '🏗️ Roof Landing Crew Dispatched! Hold controls steady during sling detachment!' };
+    return { success: true, message: 'Roof Landing Crew Dispatched: Hold controls steady during sling detachment.' };
   }
 
   // # Function: Toggle between Hook Crew Rigging and Electro-Magnet Mode
@@ -5695,29 +5688,29 @@ class CranePhysicsEngine {
       const currentLoad = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
 
       if (this.crewSafetyBreach) {
-        dropStatusTag.textContent = '⚠️ SAFETY BREACH: CONTROLS MOVED DURING RIGGING!';
+        dropStatusTag.textContent = 'SAFETY BREACH: CONTROLS MOVED DURING RIGGING!';
         dropStatusTag.style.color = 'var(--safety-red)';
         dropStatusTag.style.borderColor = 'var(--safety-red)';
       } else if (this.crewState === 'GROUND_RIGGING') {
-        dropStatusTag.textContent = '👷 GROUND RIGGER ATTACHING SLING (HOLD CONTROLS NEUTRAL)';
+        dropStatusTag.textContent = 'GROUND RIGGER ATTACHING SLING (HOLD CONTROLS NEUTRAL)';
         dropStatusTag.style.color = 'var(--safety-amber)';
         dropStatusTag.style.borderColor = 'var(--safety-amber)';
       } else if (this.crewState === 'ROOF_UNRIGGING') {
-        dropStatusTag.textContent = '🏗️ ROOF CREW DETACHING SLING (HOLD CONTROLS NEUTRAL)';
+        dropStatusTag.textContent = 'ROOF CREW DETACHING SLING (HOLD CONTROLS NEUTRAL)';
         dropStatusTag.style.color = 'var(--safety-cyan)';
         dropStatusTag.style.borderColor = 'var(--safety-cyan)';
       } else if (this.isInExclusionZone) {
-        dropStatusTag.textContent = `⚠️ VIOLATION: ${this.activeExclusionName}`;
+        dropStatusTag.textContent = `VIOLATION: ${this.activeExclusionName}`;
         dropStatusTag.style.color = 'var(--safety-red)';
         dropStatusTag.style.borderColor = 'var(--safety-red)';
       } else if (this.isOnTarget) {
         const floorName = currentLoad ? currentLoad.target.floor : 'TARGET SLAB';
-        dropStatusTag.textContent = `🎯 TARGET ${floorName.toUpperCase()} REACHED (STABILIZED - CALL CREW)`;
+        dropStatusTag.textContent = `TARGET ${floorName.toUpperCase()} REACHED (STABILIZED - READY FOR UNHOOK)`;
         dropStatusTag.style.color = 'var(--safety-emerald)';
         dropStatusTag.style.borderColor = 'var(--safety-emerald)';
       } else if (!this.hasLoad) {
         if (this.isAtPickupBay) {
-          dropStatusTag.textContent = '📦 IN PICKUP ZONE: READY TO CALL GROUND CREW';
+          dropStatusTag.textContent = 'IN PICKUP ZONE: READY TO CALL GROUND CREW';
           dropStatusTag.style.color = 'var(--safety-emerald)';
           dropStatusTag.style.borderColor = 'var(--safety-emerald)';
         } else {
@@ -5749,11 +5742,11 @@ class CranePhysicsEngine {
 
     const isMagnet = this.riggingMode === 'ELECTRO_MAGNET';
 
-    // Magnet mode button text
+    // Rigging mode button text (Clean industrial labels, no emoji icons)
     if (btnMagnet) {
       btnMagnet.innerHTML = isMagnet
-        ? `🧲 Mode: <strong>ELECTRO-MAGNET</strong> (Click for Crew)`
-        : `👷 Mode: <strong>GROUND/ROOF CREW</strong> (Click for Magnet)`;
+        ? `MODE: <strong>ELECTRO-MAGNET</strong> (Switch to Crew)`
+        : `MODE: <strong>RIGGER CREW</strong> (Switch to Magnet)`;
       btnMagnet.style.borderColor = isMagnet ? 'var(--safety-cyan)' : 'var(--safety-amber)';
     }
 
@@ -5801,10 +5794,10 @@ class CranePhysicsEngine {
       }
 
       if (isMagnet) {
-        btnGround.innerHTML = `<span>⚡ ${this.hasLoad ? 'MAGNET ENERGIZED' : 'ENERGIZE MAGNET (ATTACH)'}</span>`;
+        btnGround.innerHTML = `<span>${this.hasLoad ? 'MAGNET ACTIVE (ATTACHED)' : 'ATTACH MAGNET'}</span>`;
       } else {
         const loadName = currentLoad ? currentLoad.name : 'Payload';
-        btnGround.innerHTML = `<span>📞👷 Call Ground Crew (Rig ${loadName})</span>`;
+        btnGround.innerHTML = `<span>CALL GROUND CREW (RIG ${loadName.toUpperCase()})</span>`;
       }
     }
 
@@ -5847,10 +5840,10 @@ class CranePhysicsEngine {
       }
 
       if (isMagnet) {
-        btnRoof.innerHTML = `<span>⚡ ${!this.hasLoad ? 'MAGNET RELEASED' : 'DE-ENERGIZE MAGNET (RELEASE)'}</span>`;
+        btnRoof.innerHTML = `<span>${!this.hasLoad ? 'MAGNET IDLE (RELEASED)' : 'RELEASE MAGNET'}</span>`;
       } else {
         const targetFloor = currentLoad ? currentLoad.target.floor : 'Target Deck';
-        btnRoof.innerHTML = `<span>📞🏗️ Call ${targetFloor} Crew (Unhook)</span>`;
+        btnRoof.innerHTML = `<span>CALL ${targetFloor.toUpperCase()} CREW (UNHOOK)</span>`;
       }
     }
   }
@@ -6018,7 +6011,7 @@ class CranePhysicsEngine {
       ctx.arc(pickupX, pickupY, 18 + Math.sin(Date.now() / 150) * 4, 0, Math.PI * 2);
       ctx.stroke();
       ctx.fillStyle = '#f97316';
-      ctx.fillText('👷 RIGGER', pickupX, pickupY + 22);
+      ctx.fillText('RIGGER', pickupX, pickupY + 22);
     }
 
     // # Draw Delivered Loads Markers
@@ -6069,7 +6062,7 @@ class CranePhysicsEngine {
         ctx.arc(targetX, targetY, 18 + Math.sin(Date.now() / 150) * 4, 0, Math.PI * 2);
         ctx.stroke();
         ctx.fillStyle = '#06b6d4';
-        ctx.fillText('🏗️ CREW', targetX, targetY + 22);
+        ctx.fillText('ROOF CREW', targetX, targetY + 22);
       }
     }
 
@@ -6714,7 +6707,7 @@ class CranePhysicsEngine {
       ctx.fillStyle = '#f97316';
       ctx.font = 'bold 8px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText(`👷 RIGGER ATTACHING SLING (${pct}%)`, riggerX - 10, riggerY - 34);
+      ctx.fillText(`RIGGER ATTACHING SLING (${pct}%)`, riggerX - 10, riggerY - 34);
     } else if (this.crewState === 'ROOF_UNRIGGING' && currentLoad) {
       const targetSlabY = meterToY(currentLoad.target.heightM);
       const riggerX = scaleX(currentLoad.target.radiusM) + 18;
@@ -6741,7 +6734,7 @@ class CranePhysicsEngine {
       ctx.fillStyle = '#06b6d4';
       ctx.font = 'bold 8px system-ui';
       ctx.textAlign = 'center';
-      ctx.fillText(`🏗️ ROOF CREW UNHOOKING (${pct}%)`, riggerX, riggerY - 34);
+      ctx.fillText(`ROOF CREW UNHOOKING (${pct}%)`, riggerX, riggerY - 34);
     }
 
     // # -------------------------------------------------------------

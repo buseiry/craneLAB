@@ -510,6 +510,30 @@
           </div>
         </div>
 
+        <!-- Tenstar Rigging & Payload Operations Tactical Dock (Non-Obstructing Dedicated Dock) -->
+        <div class="rigging-operations-bar">
+          <div class="rigging-op-cell">
+            <button type="button" id="btn-call-ground-crew" class="btn-crew btn-ground-crew" onclick="if(window.CranePhysics) window.CranePhysics.callGroundCrew()">
+              <span>CALL GROUND CREW (RIG PAYLOAD)</span>
+            </button>
+            <div id="hint-ground-crew" class="crew-hint">Lower Hook to Ground Pickup Zone (R:16m, θ:45°, H&lt;3m) to Call</div>
+          </div>
+
+          <div class="rigging-op-cell">
+            <button type="button" id="btn-call-roof-crew" class="btn-crew btn-roof-crew" onclick="if(window.CranePhysics) window.CranePhysics.callRoofCrew()">
+              <span>CALL ROOF CREW (UNHOOK)</span>
+            </button>
+            <div id="hint-roof-crew" class="crew-hint">Deliver payload to 5th/6th Floor Deck to Unhook</div>
+          </div>
+
+          <div class="rigging-op-cell">
+            <button type="button" id="btn-toggle-magnet" class="btn-crew btn-mode-toggle" onclick="if(window.CranePhysics) window.CranePhysics.toggleRiggingMode()">
+              <span>MODE: <strong>RIGGER CREW</strong> (Switch to Magnet)</span>
+            </button>
+            <div class="crew-hint">Toggle Rigging: Ground/Roof Crew Sling vs Electro-Magnet</div>
+          </div>
+        </div>
+
         <!-- Cockpit Main Deck: Ergonomic Joystick Flanks + 2D Graphic Viewport -->
         <div class="cockpit-stage">
           <!-- Left Joystick Zone (Slew + Trolley) with touch-action: none -->
@@ -537,30 +561,6 @@
               <span class="hud-chip" id="hud-operator-tag">OP: TF-TNS-2026-0842</span>
               <span class="hud-chip" id="hud-pendulum-tag">PENDULUM SWING: 0.0° (DAMPED)</span>
               <span class="hud-chip" id="hud-drop-status">TARGET DROP ZONE: IN BOUNDS</span>
-            </div>
-
-            <!-- Floating Calling Buttons Overlay (Tenstar Ground Crew & Electro-Magnet) -->
-            <div class="crew-calling-overlay">
-              <div class="crew-calling-card">
-                <button type="button" id="btn-call-ground-crew" class="btn-crew btn-ground-crew" onclick="if(window.CranePhysics) window.CranePhysics.callGroundCrew()">
-                  <span>📞👷 Call Ground Crew (Hook Load)</span>
-                </button>
-                <div id="hint-ground-crew" class="crew-hint">Lower Hook to Ground Pickup Zone (R:16m, θ:45°, H&lt;3m) to Call</div>
-              </div>
-
-              <div class="crew-calling-card">
-                <button type="button" id="btn-call-roof-crew" class="btn-crew btn-roof-crew" onclick="if(window.CranePhysics) window.CranePhysics.callRoofCrew()">
-                  <span>📞🏗️ Call 5th/6th Floor Crew (Unhook Load)</span>
-                </button>
-                <div id="hint-roof-crew" class="crew-hint">Deliver payload to 5th/6th Floor Deck to Unhook</div>
-              </div>
-
-              <div class="crew-calling-card">
-                <button type="button" id="btn-toggle-magnet" class="btn-crew btn-mode-toggle" onclick="if(window.CranePhysics) window.CranePhysics.toggleRiggingMode()">
-                  <span>🧲 Mode: <strong>GROUND/ROOF CREW</strong> (Click for Magnet)</span>
-                </button>
-                <div class="crew-hint">Toggle Rigging: Ground Crew Sling vs Electro-Magnet</div>
-              </div>
             </div>
           </div>
 
