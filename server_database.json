@@ -1,0 +1,97 @@
+{
+  "telemetry_records": [
+    {
+      "record_id": "REC-1793701566787-0842",
+      "candidateId": "TF-TNS-2026-0842",
+      "cohort": "Group 2 - Mechanical Rigging",
+      "sessionToken": "7BE26E26DEED50BC114099AF884210C489115200FEDBAC0124883391AA992104",
+      "metrics": {
+        "asvamScore": 100,
+        "stabilityScore": 97.4,
+        "compositeScore": 98.2,
+        "cycleSeconds": 145
+      },
+      "received_at": "2026-11-03T10:26:06Z",
+      "status": "CRYPTOGRAPHICALLY_VERIFIED"
+    }
+  ],
+  "iot_packets": [
+    {
+      "device_id": "ASVAM-CRANE-04",
+      "timestamp": 1793701566.8253372,
+      "mpu6050": {
+        "pitch_deg": 0.85,
+        "roll_deg": -0.42,
+        "sway_vector_magnitude": 0.95
+      },
+      "load_cell": {
+        "payload_kg": 3500,
+        "swl_utilization_pct": 46.7
+      },
+      "crc16_checksum": "0x97D0"
+    }
+  ],
+  "cohort_leaderboard": [
+    {
+      "id": "TF-TNS-2026-0104",
+      "name": "Chukwuebuka Obi Okonkwo",
+      "institution": "LASUSTECH",
+      "cohort": "Group 1",
+      "rank": "Chief ASVAM Crane Engineer",
+      "compositeScore": 98.6,
+      "safetyScore": 98.6,
+      "qualityScore": 100,
+      "economyScore": 96.5,
+      "safetyNaira": 8500,
+      "cycleTime": "02:18",
+      "token": "A48F9B1E4A...21D0",
+      "timestamp": "2026-11-02T14:32:00Z"
+    },
+    {
+      "id": "TF-TNS-2026-0842",
+      "name": "Ibrahim Adeleke Musa",
+      "institution": "LASUSTECH",
+      "cohort": "Group 2",
+      "rank": "Senior Tower Operator",
+      "compositeScore": 98.2,
+      "safetyScore": 97.4,
+      "qualityScore": 100,
+      "economyScore": 94.8,
+      "safetyNaira": 5000,
+      "cycleTime": "02:45",
+      "token": "7BE26E26DE...2104",
+      "timestamp": "2026-11-03T10:26:06Z"
+    },
+    {
+      "id": "TF-TNS-2026-0419",
+      "name": "Fatima Amina Bello",
+      "institution": "Kaduna Polytechnic",
+      "cohort": "Group 3",
+      "rank": "Senior Tower Operator",
+      "compositeScore": 95.2,
+      "safetyScore": 96.0,
+      "qualityScore": 96,
+      "economyScore": 92.0,
+      "safetyNaira": 4200,
+      "cycleTime": "03:10",
+      "token": "C438D19F55...8273",
+      "timestamp": "2026-11-02T16:05:00Z"
+    },
+    {
+      "id": "TF-TNS-2026-0922",
+      "name": "Olusegun Emmanuel Babatunde",
+      "institution": "Yaba College of Technology",
+      "cohort": "Group 4",
+      "rank": "Junior Riggers Mate",
+      "compositeScore": 93.5,
+      "safetyScore": 94.5,
+      "qualityScore": 94,
+      "economyScore": 90.0,
+      "safetyNaira": 2800,
+      "cycleTime": "03:22",
+      "token": "23A5B80C99...5918",
+      "timestamp": "2026-11-02T16:48:00Z"
+    }
+  ],
+  "created_at": 1793701507.1698978
+}
