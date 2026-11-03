@@ -2150,3 +2150,45 @@ select.form-control {
   font-weight: 700;
 }
 
+/* # ASVAM Pre-Start Checklist Readiness Monitor Deck */
+.readiness-monitor-deck {
+  display: flex;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+  background: #090e1a;
+  border: 1px solid var(--border-subtle);
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 1rem;
+}
+
+.readiness-item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: #111a2e;
+  border: 1px solid var(--border-subtle);
+  border-radius: 6px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.76rem;
+  font-family: var(--font-mono);
+  color: var(--text-secondary);
+}
+
+.readiness-item.ready {
+  border-color: rgba(16, 185, 129, 0.4);
+  background: rgba(16, 185, 129, 0.08);
+  color: var(--safety-emerald);
+}
+
+.readiness-item.pending {
+  border-color: rgba(245, 158, 11, 0.4);
+  background: rgba(245, 158, 11, 0.08);
+  color: var(--safety-amber);
+}
+
+.btn-locked-state {
+  cursor: pointer !important;
+  opacity: 0.95 !important;
+}
+

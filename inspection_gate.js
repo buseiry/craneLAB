@@ -656,46 +656,97 @@ class InspectionGateController {
   // # Function: Evaluate overall readiness before enabling simulator unlock
   evaluateOverallReadiness() {
     // # Check 1: Ergonomics complete (3/3)
-    const ergoPass = this.ergonomics.seatPosition && this.ergonomics.mirrorsCameras && this.ergonomics.controlsNeutral;
+    const ergoCount = [this.ergonomics.seatPosition, this.ergonomics.mirrorsCameras, this.ergonomics.controlsNeutral].filter(Boolean).length;
+    const ergoPass = ergoCount === 3;
 
     // # Check 2: Mandatory PPE complete (4/4 mandatory, 0 distractors)
-    const ppePass = ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.every((k) => this.selectedPPE.has(k)) &&
-                    Array.from(this.selectedPPE).every((k) => ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.includes(k));
+    const ppeCount = ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.filter((k) => this.selectedPPE.has(k)).length;
+    const hasDistractors = Array.from(this.selectedPPE).some((k) => !ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.includes(k));
+    const ppePass = ppeCount === 4 && !hasDistractors;
 
     // # Check 3: Hazard matches complete (3/3 optimal)
-    const hazardsPass = ASVAM_INSPECTION_CONFIG.HAZARD_SCENARIOS.every(
+    const hazardsCount = ASVAM_INSPECTION_CONFIG.HAZARD_SCENARIOS.filter(
       (s) => this.hazardPairings[s.id] === s.correctControl
-    );
+    ).length;
+    const hazardsPass = hazardsCount === 3;
 
     // # Check 4: Defect rule:
     // If a defect is active, it MUST be isolated. If not isolated, candidate CANNOT pass.
     const defectPass = !this.activeDefect || (this.activeDefect && this.isDefectIsolated);
 
     // # Check 5: 8 Physical Inspection Vectors
-    const physicalPass = this.physicalChecks.filter(Boolean).length === 8;
+    const physicalCount = this.physicalChecks.filter(Boolean).length;
+    const physicalPass = physicalCount === 8;
 
     const allRequirementsMet = ergoPass && ppePass && hazardsPass && defectPass && physicalPass;
 
-    // # State Block: Update Sign-Off Button in DOM
+    // # State Block: Update Live Readiness Checklist Monitor in View B DOM
+    const elErgo = document.getElementById('status-ergo-count');
+    const elPpe = document.getElementById('status-ppe-count');
+    const elHazards = document.getElementById('status-hazards-count');
+    const elDefect = document.getElementById('status-defect-state');
+    const elPhysical = document.getElementById('status-physical-count');
+
+    const cardErgo = document.getElementById('readiness-ergo');
+    const cardPpe = document.getElementById('readiness-ppe');
+    const cardHazards = document.getElementById('readiness-hazards');
+    const cardDefect = document.getElementById('readiness-defect');
+    const cardPhysical = document.getElementById('readiness-physical');
+
+    if (elErgo) elErgo.textContent = `${ergoCount}/3`;
+    if (cardErgo) cardErgo.className = ergoPass ? 'readiness-item ready' : 'readiness-item pending';
+
+    if (elPpe) elPpe.textContent = hasDistractors ? `${ppeCount}/4 (Non-PPE selected)` : `${ppeCount}/4`;
+    if (cardPpe) cardPpe.className = ppePass ? 'readiness-item ready' : 'readiness-item pending';
+
+    if (elHazards) elHazards.textContent = `${hazardsCount}/3`;
+    if (cardHazards) cardHazards.className = hazardsPass ? 'readiness-item ready' : 'readiness-item pending';
+
+    if (elDefect) {
+      if (!this.activeDefect) {
+        elDefect.textContent = 'NO FAULT';
+      } else if (this.isDefectIsolated) {
+        elDefect.textContent = 'ISOLATED (+₦500)';
+      } else {
+        elDefect.textContent = 'UNTAGGED DEFECT!';
+      }
+    }
+    if (cardDefect) cardDefect.className = defectPass ? 'readiness-item ready' : 'readiness-item pending';
+
+    if (elPhysical) elPhysical.textContent = `${physicalCount}/8`;
+    if (cardPhysical) cardPhysical.className = physicalPass ? 'readiness-item ready' : 'readiness-item pending';
+
+    // # State Block: Update Sign-Off Button in DOM (Interactive, never click-blocked)
     const signOffBtn = document.getElementById('btn-sign-off-gate-b');
     if (signOffBtn) {
+      signOffBtn.removeAttribute('disabled');
       if (allRequirementsMet) {
-        signOffBtn.removeAttribute('disabled');
         signOffBtn.classList.add('btn-success');
+        signOffBtn.classList.remove('btn-locked-state');
+        signOffBtn.style.background = 'linear-gradient(135deg, #059669, #10b981)';
+        signOffBtn.style.borderColor = '#10b981';
+        signOffBtn.style.boxShadow = '0 0 25px rgba(16, 185, 129, 0.5)';
+        signOffBtn.style.color = '#ffffff';
         signOffBtn.innerHTML = `
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
-          Start Engine &amp; Energize Crane Cockpit (Gate C Unlocked)
+          ⚡ Start Engine &amp; Energize Crane Cockpit (Gate C Ready - Click to Enter)
         `;
       } else {
-        signOffBtn.setAttribute('disabled', 'true');
         signOffBtn.classList.remove('btn-success');
+        signOffBtn.classList.add('btn-locked-state');
+        signOffBtn.style.background = 'rgba(245, 158, 11, 0.15)';
+        signOffBtn.style.borderColor = 'var(--safety-amber)';
+        signOffBtn.style.boxShadow = 'none';
+        signOffBtn.style.color = 'var(--safety-amber)';
         signOffBtn.innerHTML = `
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-            <polyline points="20 6 9 17 4 12"></polyline>
+            <circle cx="12" cy="12" r="10"></circle>
+            <line x1="12" y1="8" x2="12" y2="12"></line>
+            <line x1="12" y1="16" x2="12.01" y2="16"></line>
           </svg>
-          Complete All ASVAM Checks to Unlock Engine
+          Complete All ASVAM Checks to Unlock Engine (Click for Details)
         `;
       }
     }
@@ -721,11 +772,34 @@ class InspectionGateController {
     const readiness = this.evaluateOverallReadiness();
     if (!readiness.allRequirementsMet) {
       let missing = [];
-      if (!readiness.ergoPass) missing.push('Workstation Ergonomics (3/3)');
-      if (!readiness.ppePass) missing.push('Mandatory PPE (4/4)');
-      if (!readiness.hazardsPass) missing.push('Hierarchy of Controls (3/3)');
-      if (!readiness.physicalPass) missing.push('8 Physical ASVAM Checkpoints');
-      alert(`Cannot Start Engine. Incomplete safety protocols:\n- ${missing.join('\n- ')}`);
+      const ergoCount = [this.ergonomics.seatPosition, this.ergonomics.mirrorsCameras, this.ergonomics.controlsNeutral].filter(Boolean).length;
+      const ppeCount = ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.filter((k) => this.selectedPPE.has(k)).length;
+      const hasDistractors = Array.from(this.selectedPPE).some((k) => !ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.includes(k));
+      const hazardsCount = ASVAM_INSPECTION_CONFIG.HAZARD_SCENARIOS.filter((s) => this.hazardPairings[s.id] === s.correctControl).length;
+      const physicalCount = this.physicalChecks.filter(Boolean).length;
+
+      if (!readiness.ergoPass) missing.push(`Workstation Ergonomics (${ergoCount}/3 verified) - Click all 3 green toggles`);
+      if (!readiness.ppePass) {
+        if (hasDistractors) {
+          missing.push(`Mandatory PPE (${ppeCount}/4) - Deselect non-PPE items (sunglasses, running shoes, headphones, or caps)`);
+        } else {
+          missing.push(`Mandatory PPE (${ppeCount}/4) - Select Hard Hat, High-Vis Vest, Steel-Toe Boots, and Rigging Gloves`);
+        }
+      }
+      if (!readiness.hazardsPass) missing.push(`Hierarchy of Controls (${hazardsCount}/3 matched correctly)`);
+      if (!readiness.defectPass) missing.push('Safety-Critical Defect must be tagged: Click "ISOLATE & TAG DO NOT OPERATE"');
+      if (!readiness.physicalPass) missing.push(`8 Physical ASVAM Checkpoints (${physicalCount}/8 verified) - Click "Verify Check" on remaining cards`);
+
+      const confirmAuto = typeof confirm === 'function' ? confirm(
+        `⚠️ CANNOT START ENGINE - Incomplete ASVAM Safety Protocols:\n\n` +
+        missing.map((m) => `• ${m}`).join('\n') +
+        `\n\nWould you like to Auto-Verify all checks now to immediately unlock Gate C?`
+      ) : false;
+
+      if (confirmAuto && window.CraneLabApp && typeof window.CraneLabApp.autoCompleteAudit === 'function') {
+        window.CraneLabApp.autoCompleteAudit();
+        return this.handleSignOffAttempt();
+      }
       return false;
     }
 

@@ -354,13 +354,42 @@
             </div>
           </div>
 
-          <!-- Final Sign-Off Interlock Trigger -->
-          <button type="button" id="btn-sign-off-gate-b" class="btn-primary" disabled onclick="window.InspectionGate.handleSignOffAttempt()">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <polyline points="20 6 9 17 4 12"></polyline>
-            </svg>
-            Complete All ASVAM Checks to Unlock Engine
-          </button>
+          <!-- ASVAM Pre-Start Readiness Checklist Status Monitor -->
+          <div class="readiness-monitor-deck" id="gate-b-readiness-deck">
+            <div class="readiness-item pending" id="readiness-ergo">
+              <span class="readiness-icon">💺</span>
+              <span class="readiness-label">Ergonomics: <strong id="status-ergo-count">0/3</strong></span>
+            </div>
+            <div class="readiness-item pending" id="readiness-ppe">
+              <span class="readiness-icon">🦺</span>
+              <span class="readiness-label">Mandatory PPE: <strong id="status-ppe-count">0/4</strong></span>
+            </div>
+            <div class="readiness-item pending" id="readiness-hazards">
+              <span class="readiness-icon">⚠️</span>
+              <span class="readiness-label">Hazard Controls: <strong id="status-hazards-count">0/3</strong></span>
+            </div>
+            <div class="readiness-item ready" id="readiness-defect">
+              <span class="readiness-icon">🔧</span>
+              <span class="readiness-label">Defect Interlock: <strong id="status-defect-state">NO FAULT</strong></span>
+            </div>
+            <div class="readiness-item pending" id="readiness-physical">
+              <span class="readiness-icon">📋</span>
+              <span class="readiness-label">Physical Checks: <strong id="status-physical-count">0/8</strong></span>
+            </div>
+          </div>
+
+          <!-- Final Sign-Off Action Row -->
+          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem;">
+            <button type="button" id="btn-sign-off-gate-b" class="btn-primary" style="flex: 1; min-width: 280px;" onclick="window.InspectionGate.handleSignOffAttempt()">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="20 6 9 17 4 12"></polyline>
+              </svg>
+              Complete All ASVAM Checks to Unlock Engine
+            </button>
+            <button type="button" id="btn-auto-fill-gate-b" class="btn-aux" style="border-color: var(--safety-amber); color: var(--safety-amber); padding: 0.75rem 1.25rem;" onclick="CraneLabApp.autoCompleteAudit()">
+              ⚡ Auto-Verify All ASVAM Checks (Fast Mode)
+            </button>
+          </div>
         </div>
       </div>
     </section>
