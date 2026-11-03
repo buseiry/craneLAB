@@ -15,27 +15,90 @@ const CRANE_PHYSICS_CONFIG = {
   JIB_LENGTH_MAX: 50.0,               // # Maximum working jib reach in meters
   TROLLEY_RADIUS_MIN: 4.0,            // # Minimum trolley inner limit buffer in meters
   TROLLEY_RADIUS_MAX: 48.0,           // # Maximum trolley outer limit buffer in meters
-  CAB_MAST_HEIGHT: 32.0,              // # Tower crane jib apex height in meters
+  CAB_MAST_HEIGHT: 36.0,              // # Tower crane mast apex height in meters (upgraded for 6-story building clearance)
   HOOK_HEIGHT_MIN: 0.5,               // # Minimum hook ground clearance in meters
-  HOOK_HEIGHT_MAX: 30.0,              // # Maximum hoist upper limit switch in meters
+  HOOK_HEIGHT_MAX: 34.0,              // # Maximum hoist upper limit switch in meters
   MAX_SLEW_SPEED_DEG: 18.0,           // # Maximum slewing angular velocity in deg/s (0.314 rad/s)
   MAX_TROLLEY_SPEED_MS: 1.2,          // # Maximum trolley linear speed in m/s
   MAX_HOIST_SPEED_MS: 0.9,            // # Maximum hoist cable line speed in m/s
-  HOOK_PAYLOAD_MASS_TONNES: 3.5,      // # Suspended concrete test bucket payload in metric tonnes
+  HOOK_PAYLOAD_MASS_TONNES: 3.5,      // # Legacy default payload mass
   RATED_MOMENT_KNM: 1800.0,           // # Safe Working Load (SWL) nominal rated moment in kNm
   PENDULUM_DAMPING_RATIO: 0.08,       // # Viscous aerodynamic & internal cable friction damping zeta
   JERK_THRESHOLD_SMOOTH: 1.8,         // # Maximum jerk for smooth feathering rating (1/s)
   JERK_THRESHOLD_SHOCK: 3.2,          // # Critical threshold triggering shock oscillation spike (1/s)
 
-  // # State Block: 3rd-Floor Target Drop Zone Coordinates (Workbook Exercise)
+  // # State Block: Ground Floor 0m Logistics Pickup Bay (Tenstar 2.1 Starting Point)
+  PICKUP_BAY: {
+    name: 'Ground Floor Logistics Pickup Bay',
+    radiusM: 16.0,                    // # Pickup Bay Radius R = 16.0m
+    angleDeg: 45.0,                   // # Pickup Bay Bearing Theta = 45.0 deg (Northeast)
+    heightM: 0.0,                     // # Ground Level (0.0m)
+    toleranceRadiusM: 3.0,            // # Proximity tolerance: 16 ± 3m
+    toleranceAngleDeg: 15.0,          // # Azimuth tolerance: 45 ± 15 deg
+    toleranceHeightM: 3.0             // # Hook height ceiling: H <= 3.0m
+  },
+
+  // # State Block: Multi-Load Tenstar Exercise 2.1 Payloads (Ground Floor to 5th/6th Floor)
+  LOADS: [
+    {
+      id: 'LOAD_1_REBAR',
+      name: 'Steel Rebar Bundle',
+      massTonnes: 2.4,
+      color: '#38bdf8',
+      pickupHeightM: 0.0,
+      target: {
+        floor: '5th Floor Slab',
+        radiusM: 30.0,
+        angleDeg: 135.0,
+        heightM: 18.0,
+        toleranceRadiusM: 2.5,
+        toleranceAngleDeg: 6.0,
+        toleranceHeightM: 1.2
+      }
+    },
+    {
+      id: 'LOAD_2_PRECAST_BEAM',
+      name: 'Precast Concrete Beam',
+      massTonnes: 3.5,
+      color: '#fbbf24',
+      pickupHeightM: 0.0,
+      target: {
+        floor: '6th Floor Roof Deck',
+        radiusM: 34.0,
+        angleDeg: 150.0,
+        heightM: 22.0,
+        toleranceRadiusM: 2.5,
+        toleranceAngleDeg: 6.0,
+        toleranceHeightM: 1.2
+      }
+    },
+    {
+      id: 'LOAD_3_HVAC_CHILLER',
+      name: 'HVAC Chiller Unit',
+      massTonnes: 1.8,
+      color: '#c084fc',
+      pickupHeightM: 0.0,
+      target: {
+        floor: '6th Floor Roof Deck',
+        radiusM: 28.0,
+        angleDeg: 120.0,
+        heightM: 22.0,
+        toleranceRadiusM: 2.5,
+        toleranceAngleDeg: 6.0,
+        toleranceHeightM: 1.2
+      }
+    }
+  ],
+
+  // # State Block: Backward-Compatible Target Zone
   TARGET_ZONE: {
-    name: '3rd Floor Target Landing Slab',
-    radiusM: 28.0,                    // # Radial distance from mast center (m)
-    angleDeg: 135.0,                  // # Azimuth compass bearing (Southeast)
-    heightM: 12.0,                    // # Elevation of 3rd floor slab (m)
-    toleranceRadiusM: 1.8,            // # Acceptable landing radial error tolerance
-    toleranceAngleDeg: 4.0,           // # Acceptable landing azimuth angle tolerance
-    toleranceHeightM: 0.8             // # Acceptable landing hook height tolerance
+    name: '5th Floor Target Landing Slab',
+    radiusM: 30.0,
+    angleDeg: 135.0,
+    heightM: 18.0,
+    toleranceRadiusM: 2.5,
+    toleranceAngleDeg: 6.0,
+    toleranceHeightM: 1.2
   },
 
   // # State Block: Prohibited Exclusion Zones (LOLER Overfly Restriction)
@@ -58,24 +121,35 @@ const CRANE_PHYSICS_CONFIG = {
     }
   ],
 
+  // # State Block: 6-Story High-Rise Building Floors (Ground 0m to 6th Floor Roof 22m)
+  BUILDING_FLOORS: [
+    { name: 'Ground Floor', heightM: 0.0, slabThicknessM: 0.6, color: '#475569', label: 'GF (0m)' },
+    { name: '1st Floor', heightM: 3.5, slabThicknessM: 0.4, color: '#334155', label: '1F (3.5m)' },
+    { name: '2nd Floor', heightM: 7.0, slabThicknessM: 0.4, color: '#334155', label: '2F (7m)' },
+    { name: '3rd Floor', heightM: 10.5, slabThicknessM: 0.4, color: '#334155', label: '3F (10.5m)' },
+    { name: '4th Floor', heightM: 14.0, slabThicknessM: 0.4, color: '#334155', label: '4F (14m)' },
+    { name: '5th Floor Slab', heightM: 18.0, slabThicknessM: 0.6, color: '#10b981', label: '5F (18m)' },
+    { name: '6th Floor Roof Deck', heightM: 22.0, slabThicknessM: 0.6, color: '#f59e0b', label: '6F Roof (22m)' }
+  ],
+
   // # State Block: Side Elevation Obstacles & Scaffolding Floors
   OBSTACLES: [
     { name: 'Ground Floor Logistics Bay', baseHeightM: 0.0, topHeightM: 1.0, minRM: 10.0, maxRM: 45.0, color: '#334155' },
-    { name: 'Floor 1 Steel Scaffolding', baseHeightM: 1.0, topHeightM: 4.0, minRM: 16.0, maxRM: 24.0, color: '#475569' },
-    { name: 'Floor 2 Brickwork Facade', baseHeightM: 4.0, topHeightM: 8.0, minRM: 16.0, maxRM: 24.0, color: '#64748b' },
-    { name: 'Floor 3 Target Concrete Slab', baseHeightM: 8.0, topHeightM: 12.0, minRM: 25.0, maxRM: 31.0, color: '#10b981' }
+    { name: 'Floors 1-4 Building Facade', baseHeightM: 1.0, topHeightM: 14.0, minRM: 24.0, maxRM: 38.0, color: '#475569' },
+    { name: '5th Floor Target Slab', baseHeightM: 14.0, topHeightM: 18.0, minRM: 26.0, maxRM: 34.0, color: '#10b981' },
+    { name: '6th Floor Roof Deck', baseHeightM: 18.0, topHeightM: 22.0, minRM: 26.0, maxRM: 36.0, color: '#f59e0b' }
   ]
 };
 
 // # Class: CranePhysicsEngine - Mechanical Kinematics, Dynamics & Canvas Render Engine
 class CranePhysicsEngine {
-  // # Function: Constructor initializing kinematics and ODE states
+  // # Function: Constructor initializing kinematics, multi-load state, and ODE states
   constructor() {
-    // # State Block: Kinematic Spatial Coordinates
-    this.slewAngleDeg = 0.0;           // # Jib azimuth orientation theta in degrees [0, 360)
-    this.trolleyRadiusM = 24.5;        // # Radial position R along working jib in meters [4, 48]
-    this.hookElevationM = 18.2;        // # Hook elevation z above ground datum in meters [0.5, 30]
-    this.cableLengthM = 13.8;          // # Suspended hoist wire rope length L = Cab_Height - z
+    // # State Block: Kinematic Spatial Coordinates (Starts near Ground Bay with Hook elevated)
+    this.slewAngleDeg = 45.0;          // # Pointed toward Ground Pickup Bay (45 deg)
+    this.trolleyRadiusM = 16.0;        // # Aligned with Ground Pickup Bay (R = 16m)
+    this.hookElevationM = 8.0;         // # Safe initial elevation above ground
+    this.cableLengthM = 28.0;          // # Suspended hoist wire rope length L = Cab_Height - z
 
     // # State Block: Dynamic Velocities and Accelerations
     this.slewVelocityDeg = 0.0;        // # Current slew angular rate dtheta/dt
@@ -108,9 +182,23 @@ class CranePhysicsEngine {
 
     // # State Block: ASVAM Target & Exclusion Flags
     this.isOnTarget = false;
+    this.isAtPickupBay = false;
     this.isInExclusionZone = false;
     this.activeExclusionName = '';
     this.isEmergencyStopped = false;
+
+    // # State Block: Tenstar Exercise 2.1 Multi-Load & Interactive Crew Rigging State
+    this.hasLoad = false;              // # Empty hook start requirement
+    this.riggingMode = 'HOOK_CREW';    // # 'HOOK_CREW' or 'ELECTRO_MAGNET'
+    this.currentLoadIndex = 0;         // # Index 0: Rebar (2.4t), 1: Precast Beam (3.5t), 2: Chiller (1.8t)
+    this.deliveredLoads = [];          // # Successfully placed payloads on building decks
+    this.crewState = 'IDLE';           // # 'IDLE' | 'GROUND_RIGGING' | 'ROOF_UNRIGGING'
+    this.crewTimer = 0.0;              // # Rigging animation elapsed timer (0 to 2.0s)
+    this.crewDuration = 2.0;           // # 2.0-second rigging duration
+    this.crewSafetyBreach = false;     // # Flagged if joysticks move while crew rigs
+    this.crewBreachMessage = '';       // # Safety breach HUD message
+    this.crewBreachTimer = 0.0;        // # Breach warning banner countdown
+    this.magnetEngaged = false;        // # Electro-magnet attraction state
 
     // # State Block: Input Device States (Touch + Keyboard)
     this.keyboardKeys = {};
@@ -372,24 +460,212 @@ class CranePhysicsEngine {
     // # 4. Safe Working Load (SWL) Moment Calculation
     // # Equation: M = Force * Radius = (mass * 9.81) * Radius (kNm)
     // # -------------------------------------------------------------
-    const loadForceKn = CRANE_PHYSICS_CONFIG.HOOK_PAYLOAD_MASS_TONNES * g;
+    const activePayloadMass = this.getCurrentPayloadMass();
+    const loadForceKn = activePayloadMass * g;
     const currentMomentKnm = loadForceKn * this.trolleyRadiusM;
     const swlPercent = (currentMomentKnm / CRANE_PHYSICS_CONFIG.RATED_MOMENT_KNM) * 100;
 
     // # -------------------------------------------------------------
-    // # 5. Evaluate Target Zone & Exclusion Zone Proximity
+    // # 5. Evaluate Crew Rigging Lifecycle & Strict Safety Motion Rules
+    // # -------------------------------------------------------------
+    if (this.crewState === 'GROUND_RIGGING' || this.crewState === 'ROOF_UNRIGGING') {
+      // # STRICT SAFETY RULE: Operator must not touch joysticks while crew is attaching/detaching slings
+      const isMoving =
+        Math.abs(this.currentInputVector.slew) > 0.05 ||
+        Math.abs(this.currentInputVector.trolley) > 0.05 ||
+        Math.abs(this.currentInputVector.hoist) > 0.05;
+
+      if (isMoving) {
+        this.crewSafetyBreach = true;
+        this.crewBreachMessage = 'RIGGER SAFETY BREACH: CRANE MOVED WHILE CREW RIGGING! -15% SAFETY PENALTY!';
+        this.crewBreachTimer = 4.0;
+        this.crewState = 'IDLE';
+        this.crewTimer = 0.0;
+
+        // Apply strict 15% safety penalty to Career Telemetry
+        if (typeof window !== 'undefined' && window.CareerTelemetry) {
+          window.CareerTelemetry.deductSafety(15.0, 'Rigger Safety Breach: Controls moved while ground/roof crew in rigging zone');
+        }
+      } else {
+        this.crewTimer += dt;
+        if (this.crewTimer >= this.crewDuration) {
+          if (this.crewState === 'GROUND_RIGGING') {
+            this.hasLoad = true;
+            this.crewState = 'IDLE';
+            this.crewTimer = 0.0;
+          } else if (this.crewState === 'ROOF_UNRIGGING') {
+            this.hasLoad = false;
+            const currentLoad = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+            if (currentLoad) {
+              this.deliveredLoads.push({
+                ...currentLoad,
+                deliveredAt: Date.now(),
+                landingFloor: currentLoad.target.floor
+              });
+              this.currentLoadIndex++;
+            }
+            this.crewState = 'IDLE';
+            this.crewTimer = 0.0;
+
+            // Award ₦15,000 Safety Naira bonus
+            if (typeof window !== 'undefined' && window.CareerTelemetry) {
+              window.CareerTelemetry.awardLoadDeliveryBonus(15000);
+            }
+          }
+        }
+      }
+    }
+
+    if (this.crewBreachTimer > 0) {
+      this.crewBreachTimer -= dt;
+      if (this.crewBreachTimer <= 0) {
+        this.crewBreachMessage = '';
+        this.crewSafetyBreach = false;
+      }
+    }
+
+    // # -------------------------------------------------------------
+    // # 6. Evaluate Target Zone & Exclusion Zone Proximity
     // # -------------------------------------------------------------
     this.evaluateZoneProximity();
 
     // # -------------------------------------------------------------
-    // # 6. Synchronize DOM Telemetry HUD Elements
+    // # 7. Synchronize DOM Telemetry HUD Elements & Calling Buttons
     // # -------------------------------------------------------------
     this.updateDomHUD(swlPercent, currentMomentKnm);
+    this.updateCallingButtonsDOM();
+  }
+
+  // # Function: Get current active suspended payload mass in metric tonnes
+  getCurrentPayloadMass() {
+    if (!this.hasLoad) return 0.0; // Hook tare block mass treated as machinery constant
+    const load = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+    return load ? load.massTonnes : 0.0;
+  }
+
+  // # Function: Check if Hook is within Ground Floor Pickup Bay Tolerance
+  isHookInPickupBay() {
+    const pb = CRANE_PHYSICS_CONFIG.PICKUP_BAY;
+    const radialErr = Math.abs(this.trolleyRadiusM - pb.radiusM);
+    let angleErr = Math.abs(this.slewAngleDeg - pb.angleDeg);
+    if (angleErr > 180) angleErr = 360 - angleErr;
+    const heightOk = this.hookElevationM <= pb.toleranceHeightM;
+
+    return radialErr <= pb.toleranceRadiusM && angleErr <= pb.toleranceAngleDeg && heightOk;
+  }
+
+  // # Function: Check if Hook is within Active Load Target Landing Zone Tolerance
+  isHookInTargetZone() {
+    const currentLoad = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+    if (!currentLoad) return false;
+    const tz = currentLoad.target;
+    const radialErr = Math.abs(this.trolleyRadiusM - tz.radiusM);
+    let angleErr = Math.abs(this.slewAngleDeg - tz.angleDeg);
+    if (angleErr > 180) angleErr = 360 - angleErr;
+    const heightErr = Math.abs(this.hookElevationM - tz.heightM);
+
+    return (
+      radialErr <= tz.toleranceRadiusM &&
+      angleErr <= tz.toleranceAngleDeg &&
+      heightErr <= tz.toleranceHeightM &&
+      this.totalSwayAngleDeg < 3.5
+    );
+  }
+
+  // # Function: User triggers "Call Ground Crew" to attach payload
+  callGroundCrew() {
+    if (this.currentLoadIndex >= CRANE_PHYSICS_CONFIG.LOADS.length) {
+      return { success: false, reason: 'All 3 Tenstar contracts completed!' };
+    }
+    if (this.hasLoad) {
+      return { success: false, reason: 'Hook already carrying a load! Proceed to target landing deck.' };
+    }
+    if (this.crewState !== 'IDLE') {
+      return { success: false, reason: 'Crew rigging currently in progress!' };
+    }
+
+    if (this.riggingMode === 'ELECTRO_MAGNET') {
+      if (this.isHookInPickupBay()) {
+        this.hasLoad = true;
+        this.magnetEngaged = true;
+        this.updateCallingButtonsDOM();
+        return { success: true, message: '⚡ Electro-Magnet Energized: Payload Attached Instantly!' };
+      } else {
+        return { success: false, reason: 'Hook must be within Ground Pickup Zone (R:16m, θ:45°, H<3m) to energize magnet!' };
+      }
+    }
+
+    // Ground Crew Hook Mode
+    if (!this.isHookInPickupBay()) {
+      return { success: false, reason: 'Hook out of range! Lower hook to Ground Pickup Bay (R:16m, θ:45°, H<3m).' };
+    }
+
+    // Initiate 2-second rigging sequence
+    this.crewState = 'GROUND_RIGGING';
+    this.crewTimer = 0.0;
+    this.crewSafetyBreach = false;
+    this.updateCallingButtonsDOM();
+    return { success: true, message: '👷 Ground Crew Dispatched! Hold controls in neutral during rigging!' };
+  }
+
+  // # Function: User triggers "Call Roof Crew" to detach and land payload
+  callRoofCrew() {
+    if (!this.hasLoad) {
+      return { success: false, reason: 'Hook is empty! Pick up a payload from Ground Bay first.' };
+    }
+    if (this.crewState !== 'IDLE') {
+      return { success: false, reason: 'Crew operation currently in progress!' };
+    }
+
+    const currentLoad = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+
+    if (this.riggingMode === 'ELECTRO_MAGNET') {
+      if (this.isHookInTargetZone()) {
+        this.hasLoad = false;
+        this.magnetEngaged = false;
+        if (currentLoad) {
+          this.deliveredLoads.push({
+            ...currentLoad,
+            deliveredAt: Date.now(),
+            landingFloor: currentLoad.target.floor
+          });
+          this.currentLoadIndex++;
+        }
+        if (typeof window !== 'undefined' && window.CareerTelemetry) {
+          window.CareerTelemetry.awardLoadDeliveryBonus(15000);
+        }
+        this.updateCallingButtonsDOM();
+        return { success: true, message: '⚡ Electro-Magnet De-Energized: Payload Safely Released on Target Deck!' };
+      } else {
+        return { success: false, reason: 'Position payload onto target floor landing deck before releasing magnet!' };
+      }
+    }
+
+    // Roof Crew Unhook Mode
+    if (!this.isHookInTargetZone()) {
+      const targetName = currentLoad ? currentLoad.target.floor : 'Target Deck';
+      return { success: false, reason: `Hook out of tolerance! Stabilize payload over ${targetName}.` };
+    }
+
+    // Initiate 2-second unrigging sequence
+    this.crewState = 'ROOF_UNRIGGING';
+    this.crewTimer = 0.0;
+    this.crewSafetyBreach = false;
+    this.updateCallingButtonsDOM();
+    return { success: true, message: '🏗️ Roof Landing Crew Dispatched! Hold controls steady during sling detachment!' };
+  }
+
+  // # Function: Toggle between Hook Crew Rigging and Electro-Magnet Mode
+  toggleRiggingMode() {
+    this.riggingMode = this.riggingMode === 'HOOK_CREW' ? 'ELECTRO_MAGNET' : 'HOOK_CREW';
+    this.updateCallingButtonsDOM();
+    return this.riggingMode;
   }
 
   // # Function: Evaluate Target Landing Drop Zone & Exclusion Zone Violations
   evaluateZoneProximity() {
-    const tz = CRANE_PHYSICS_CONFIG.TARGET_ZONE;
+    const currentLoad = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+    const tz = currentLoad ? currentLoad.target : CRANE_PHYSICS_CONFIG.TARGET_ZONE;
 
     // # Check Target Radial and Height Error
     const radialError = Math.abs(this.trolleyRadiusM - tz.radiusM);
@@ -399,12 +675,16 @@ class CranePhysicsEngine {
     let angleDiff = Math.abs(this.slewAngleDeg - tz.angleDeg);
     if (angleDiff > 180) angleDiff = 360 - angleDiff;
 
-    // # Condition: All coordinates within tolerance bounds and sway stabilized < 2.0 deg
+    // # Condition: Target zone reached with stable pendulum sway
     this.isOnTarget =
+      this.hasLoad &&
       radialError <= tz.toleranceRadiusM &&
       angleDiff <= tz.toleranceAngleDeg &&
       heightError <= tz.toleranceHeightM &&
-      this.totalSwayAngleDeg < 2.5;
+      this.totalSwayAngleDeg < 3.0;
+
+    // # Check Pickup Bay Proximity
+    this.isAtPickupBay = this.isHookInPickupBay();
 
     // # Check Prohibited Exclusion Zones
     this.isInExclusionZone = false;
@@ -435,6 +715,7 @@ class CranePhysicsEngine {
     const heightVal = document.getElementById('hud-height-val');
     const momentVal = document.getElementById('hud-moment-val');
     const swlVal = document.getElementById('hud-swl-val');
+    const loadVal = document.getElementById('hud-load-val');
     const pendulumTag = document.getElementById('hud-pendulum-tag');
     const dropStatusTag = document.getElementById('hud-drop-status');
 
@@ -442,6 +723,17 @@ class CranePhysicsEngine {
     if (radiusVal) radiusVal.textContent = `${this.trolleyRadiusM.toFixed(1)}`;
     if (heightVal) heightVal.textContent = `${this.hookElevationM.toFixed(1)}`;
     if (momentVal) momentVal.textContent = `${momentKnm.toFixed(1)}`;
+
+    if (loadVal) {
+      if (this.hasLoad) {
+        const load = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+        loadVal.textContent = `${load ? load.massTonnes.toFixed(1) : '0.0'} t`;
+        loadVal.className = 'gauge-val warn';
+      } else {
+        loadVal.textContent = '0.0 t (EMPTY)';
+        loadVal.className = 'gauge-val safe';
+      }
+    }
 
     if (swlVal) {
       swlVal.textContent = `${swlPercent.toFixed(1)}%`;
@@ -461,19 +753,165 @@ class CranePhysicsEngine {
     }
 
     if (dropStatusTag) {
-      if (this.isInExclusionZone) {
+      const currentLoad = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+
+      if (this.crewSafetyBreach) {
+        dropStatusTag.textContent = '⚠️ SAFETY BREACH: CONTROLS MOVED DURING RIGGING!';
+        dropStatusTag.style.color = 'var(--safety-red)';
+        dropStatusTag.style.borderColor = 'var(--safety-red)';
+      } else if (this.crewState === 'GROUND_RIGGING') {
+        dropStatusTag.textContent = '👷 GROUND RIGGER ATTACHING SLING (HOLD CONTROLS NEUTRAL)';
+        dropStatusTag.style.color = 'var(--safety-amber)';
+        dropStatusTag.style.borderColor = 'var(--safety-amber)';
+      } else if (this.crewState === 'ROOF_UNRIGGING') {
+        dropStatusTag.textContent = '🏗️ ROOF CREW DETACHING SLING (HOLD CONTROLS NEUTRAL)';
+        dropStatusTag.style.color = 'var(--safety-cyan)';
+        dropStatusTag.style.borderColor = 'var(--safety-cyan)';
+      } else if (this.isInExclusionZone) {
         dropStatusTag.textContent = `⚠️ VIOLATION: ${this.activeExclusionName}`;
         dropStatusTag.style.color = 'var(--safety-red)';
         dropStatusTag.style.borderColor = 'var(--safety-red)';
       } else if (this.isOnTarget) {
-        dropStatusTag.textContent = '🎯 TARGET 3RD-FLOOR SLAB REACHED (STABILIZED)';
+        const floorName = currentLoad ? currentLoad.target.floor : 'TARGET SLAB';
+        dropStatusTag.textContent = `🎯 TARGET ${floorName.toUpperCase()} REACHED (STABILIZED - CALL CREW)`;
         dropStatusTag.style.color = 'var(--safety-emerald)';
         dropStatusTag.style.borderColor = 'var(--safety-emerald)';
+      } else if (!this.hasLoad) {
+        if (this.isAtPickupBay) {
+          dropStatusTag.textContent = '📦 IN PICKUP ZONE: READY TO CALL GROUND CREW';
+          dropStatusTag.style.color = 'var(--safety-emerald)';
+          dropStatusTag.style.borderColor = 'var(--safety-emerald)';
+        } else {
+          const pb = CRANE_PHYSICS_CONFIG.PICKUP_BAY;
+          const rDist = Math.abs(this.trolleyRadiusM - pb.radiusM).toFixed(1);
+          dropStatusTag.textContent = `APPROACH PICKUP BAY (R:16m, 45°): ${rDist}m RADIAL OFFSET`;
+          dropStatusTag.style.color = 'var(--safety-amber)';
+          dropStatusTag.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+        }
       } else {
-        const dist = Math.abs(this.trolleyRadiusM - CRANE_PHYSICS_CONFIG.TARGET_ZONE.radiusM).toFixed(1);
-        dropStatusTag.textContent = `TARGET APPROACH: ${dist}m RADIAL OFFSET`;
-        dropStatusTag.style.color = 'var(--safety-amber)';
-        dropStatusTag.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+        if (currentLoad) {
+          const tz = currentLoad.target;
+          const rDist = Math.abs(this.trolleyRadiusM - tz.radiusM).toFixed(1);
+          dropStatusTag.textContent = `APPROACH ${tz.floor.toUpperCase()}: ${rDist}m RADIAL OFFSET`;
+          dropStatusTag.style.color = 'var(--safety-amber)';
+          dropStatusTag.style.borderColor = 'rgba(245, 158, 11, 0.4)';
+        }
+      }
+    }
+  }
+
+  // # Function: Synchronize Floating Calling Buttons on HUD with live distance hints
+  updateCallingButtonsDOM() {
+    const btnGround = document.getElementById('btn-call-ground-crew');
+    const btnRoof = document.getElementById('btn-call-roof-crew');
+    const btnMagnet = document.getElementById('btn-toggle-magnet');
+    const hintGround = document.getElementById('hint-ground-crew');
+    const hintRoof = document.getElementById('hint-roof-crew');
+
+    const isMagnet = this.riggingMode === 'ELECTRO_MAGNET';
+
+    // Magnet mode button text
+    if (btnMagnet) {
+      btnMagnet.innerHTML = isMagnet
+        ? `🧲 Mode: <strong>ELECTRO-MAGNET</strong> (Click for Crew)`
+        : `👷 Mode: <strong>GROUND/ROOF CREW</strong> (Click for Magnet)`;
+      btnMagnet.style.borderColor = isMagnet ? 'var(--safety-cyan)' : 'var(--safety-amber)';
+    }
+
+    const currentLoad = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+
+    // Ground Crew Button
+    if (btnGround) {
+      if (this.hasLoad) {
+        btnGround.classList.remove('pulse-ready');
+        btnGround.disabled = true;
+        btnGround.style.opacity = '0.5';
+        if (hintGround) hintGround.textContent = 'Payload already rigged onto hook';
+      } else if (this.currentLoadIndex >= CRANE_PHYSICS_CONFIG.LOADS.length) {
+        btnGround.classList.remove('pulse-ready');
+        btnGround.disabled = true;
+        btnGround.style.opacity = '0.5';
+        if (hintGround) hintGround.textContent = 'All 3 contracts delivered!';
+      } else if (this.crewState === 'GROUND_RIGGING') {
+        btnGround.classList.add('pulse-ready');
+        btnGround.disabled = true;
+        btnGround.style.opacity = '1.0';
+        const progress = Math.min(100, Math.round((this.crewTimer / this.crewDuration) * 100));
+        if (hintGround) hintGround.textContent = `Rigging in progress... ${progress}% (HOLD STEADY)`;
+      } else {
+        const inPickup = this.isHookInPickupBay();
+        btnGround.disabled = false;
+        btnGround.style.opacity = '1.0';
+        if (inPickup) {
+          btnGround.classList.add('pulse-ready');
+          if (hintGround) hintGround.textContent = isMagnet
+            ? '✓ READY TO ATTACH: Hook in magnet pickup range!'
+            : '✓ READY TO RIG: Hook in pickup zone! Click to call rigger';
+        } else {
+          btnGround.classList.remove('pulse-ready');
+          const pb = CRANE_PHYSICS_CONFIG.PICKUP_BAY;
+          const rDiff = (this.trolleyRadiusM - pb.radiusM).toFixed(1);
+          let aDiff = (this.slewAngleDeg - pb.angleDeg);
+          if (aDiff > 180) aDiff -= 360;
+          if (aDiff < -180) aDiff += 360;
+          const h = this.hookElevationM.toFixed(1);
+          if (hintGround) {
+            hintGround.textContent = `Zone Range: R:${pb.radiusM}m (Δ${rDiff > 0 ? '+' : ''}${rDiff}m), θ:${pb.angleDeg}° (Δ${aDiff > 0 ? '+' : ''}${aDiff.toFixed(0)}°), H<3m (${h}m)`;
+          }
+        }
+      }
+
+      if (isMagnet) {
+        btnGround.innerHTML = `<span>⚡ ${this.hasLoad ? 'MAGNET ENERGIZED' : 'ENERGIZE MAGNET (ATTACH)'}</span>`;
+      } else {
+        const loadName = currentLoad ? currentLoad.name : 'Payload';
+        btnGround.innerHTML = `<span>📞👷 Call Ground Crew (Rig ${loadName})</span>`;
+      }
+    }
+
+    // Roof Crew Button
+    if (btnRoof) {
+      if (!this.hasLoad) {
+        btnRoof.classList.remove('pulse-ready');
+        btnRoof.disabled = true;
+        btnRoof.style.opacity = '0.5';
+        if (hintRoof) hintRoof.textContent = 'Hook is empty - rig load from Ground first';
+      } else if (this.crewState === 'ROOF_UNRIGGING') {
+        btnRoof.classList.add('pulse-ready');
+        btnRoof.disabled = true;
+        btnRoof.style.opacity = '1.0';
+        const progress = Math.min(100, Math.round((this.crewTimer / this.crewDuration) * 100));
+        if (hintRoof) hintRoof.textContent = `Unhooking in progress... ${progress}% (HOLD STEADY)`;
+      } else {
+        const inTarget = this.isHookInTargetZone();
+        btnRoof.disabled = false;
+        btnRoof.style.opacity = '1.0';
+        if (inTarget) {
+          btnRoof.classList.add('pulse-ready');
+          if (hintRoof) hintRoof.textContent = isMagnet
+            ? '✓ READY TO RELEASE: In target deck landing tolerance!'
+            : (currentLoad ? `✓ READY TO LAND: Stabilized over ${currentLoad.target.floor}! Click to unhook` : '✓ READY TO LAND');
+        } else {
+          btnRoof.classList.remove('pulse-ready');
+          if (currentLoad) {
+            const tz = currentLoad.target;
+            const rDiff = (this.trolleyRadiusM - tz.radiusM).toFixed(1);
+            let aDiff = (this.slewAngleDeg - tz.angleDeg);
+            if (aDiff > 180) aDiff -= 360;
+            if (aDiff < -180) aDiff += 360;
+            const hDiff = (this.hookElevationM - tz.heightM).toFixed(1);
+            if (hintRoof) {
+              hintRoof.textContent = `Target ${tz.floor}: R:${tz.radiusM}m (Δ${rDiff > 0 ? '+' : ''}${rDiff}m), θ:${tz.angleDeg}° (Δ${aDiff > 0 ? '+' : ''}${aDiff.toFixed(0)}°), H:${tz.heightM}m (Δ${hDiff > 0 ? '+' : ''}${hDiff}m)`;
+            }
+          }
+        }
+      }
+
+      if (isMagnet) {
+        btnRoof.innerHTML = `<span>⚡ ${!this.hasLoad ? 'MAGNET RELEASED' : 'DE-ENERGIZE MAGNET (RELEASE)'}</span>`;
+      } else {
+        const targetFloor = currentLoad ? currentLoad.target.floor : 'Target Deck';
+        btnRoof.innerHTML = `<span>📞🏗️ Call ${targetFloor} Crew (Unhook)</span>`;
       }
     }
   }
@@ -528,7 +966,7 @@ class CranePhysicsEngine {
     this.renderOscilloscope(ctx, 16, Math.max(10, h - 54), Math.max(50, w - 32), 44);
   }
 
-  // # Function: Render Left Half - 360-Degree Slew Radar
+  // # Function: Render Left Half - 360-Degree Slew Radar with Tenstar Multi-Load Zones
   renderTopDownRadar(ctx, x, y, width, height) {
     // # Background Fill
     ctx.fillStyle = '#070d1e';
@@ -605,29 +1043,96 @@ class CranePhysicsEngine {
       ctx.fillText(zone.label.split(':')[0], centerX + Math.cos(midRad) * labelPx, centerY + Math.sin(midRad) * labelPx);
     });
 
-    // # Draw 3rd-Floor Target Landing Zone Bullseye
-    const tz = CRANE_PHYSICS_CONFIG.TARGET_ZONE;
-    const targetRad = ((tz.angleDeg - 90) * Math.PI) / 180;
-    const targetDistPx = (tz.radiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius;
-    const targetX = centerX + Math.cos(targetRad) * targetDistPx;
-    const targetY = centerY + Math.sin(targetRad) * targetDistPx;
-    const targetTolPx = (tz.toleranceRadiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius * 2;
+    // # Draw Ground Logistics Pickup Bay (R = 16m, Theta = 45 deg)
+    const pb = CRANE_PHYSICS_CONFIG.PICKUP_BAY;
+    const pickupRad = ((pb.angleDeg - 90) * Math.PI) / 180;
+    const pickupDistPx = (pb.radiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius;
+    const pickupX = centerX + Math.cos(pickupRad) * pickupDistPx;
+    const pickupY = centerY + Math.sin(pickupRad) * pickupDistPx;
+    const pickupTolPx = (pb.toleranceRadiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius * 2;
 
-    ctx.fillStyle = this.isOnTarget ? 'rgba(16, 185, 129, 0.4)' : 'rgba(16, 185, 129, 0.15)';
-    ctx.strokeStyle = '#10b981';
-    ctx.lineWidth = 2;
+    const isPickupActive = !this.hasLoad && this.isHookInPickupBay();
+    ctx.fillStyle = isPickupActive ? 'rgba(16, 185, 129, 0.35)' : 'rgba(16, 185, 129, 0.12)';
+    ctx.strokeStyle = isPickupActive ? '#10b981' : 'rgba(16, 185, 129, 0.6)';
+    ctx.lineWidth = isPickupActive ? 2.5 : 1.5;
+    ctx.setLineDash([5, 4]);
     ctx.beginPath();
-    ctx.arc(targetX, targetY, Math.max(12, targetTolPx), 0, Math.PI * 2);
+    ctx.arc(pickupX, pickupY, Math.max(14, pickupTolPx), 0, Math.PI * 2);
     ctx.fill();
     ctx.stroke();
+    ctx.setLineDash([]);
 
-    // Inner Bullseye Dot
+    // Pickup Bay Center Marker & Icon
     ctx.fillStyle = '#10b981';
     ctx.beginPath();
-    ctx.arc(targetX, targetY, 4, 0, Math.PI * 2);
+    ctx.arc(pickupX, pickupY, 4, 0, Math.PI * 2);
     ctx.fill();
     ctx.font = '9px monospace';
-    ctx.fillText('3RD-FL TARGET', targetX, targetY - 14);
+    ctx.textAlign = 'center';
+    ctx.fillText('0m PICKUP BAY', pickupX, pickupY - 14);
+
+    // If crew is currently hooking on ground, draw animated worker radar beacon
+    if (this.crewState === 'GROUND_RIGGING') {
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(pickupX, pickupY, 18 + Math.sin(Date.now() / 150) * 4, 0, Math.PI * 2);
+      ctx.stroke();
+      ctx.fillStyle = '#f97316';
+      ctx.fillText('👷 RIGGER', pickupX, pickupY + 22);
+    }
+
+    // # Draw Delivered Loads Markers
+    this.deliveredLoads.forEach((dl) => {
+      const dRad = ((dl.target.angleDeg - 90) * Math.PI) / 180;
+      const dDistPx = (dl.target.radiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius;
+      const dX = centerX + Math.cos(dRad) * dDistPx;
+      const dY = centerY + Math.sin(dRad) * dDistPx;
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 11px system-ui';
+      ctx.fillText('✓', dX, dY + 4);
+    });
+
+    // # Draw Active Target Landing Zone Bullseye
+    const currentLoad = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+    if (currentLoad) {
+      const tz = currentLoad.target;
+      const targetRad = ((tz.angleDeg - 90) * Math.PI) / 180;
+      const targetDistPx = (tz.radiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius;
+      const targetX = centerX + Math.cos(targetRad) * targetDistPx;
+      const targetY = centerY + Math.sin(targetRad) * targetDistPx;
+      const targetTolPx = (tz.toleranceRadiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius * 2;
+
+      ctx.fillStyle = this.isOnTarget ? 'rgba(16, 185, 129, 0.4)' : 'rgba(245, 158, 11, 0.15)';
+      ctx.strokeStyle = this.isOnTarget ? '#10b981' : '#f59e0b';
+      ctx.lineWidth = this.isOnTarget ? 2.5 : 1.5;
+      ctx.setLineDash([6, 4]);
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, Math.max(14, targetTolPx), 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      // Inner Bullseye Dot
+      ctx.fillStyle = this.isOnTarget ? '#10b981' : '#f59e0b';
+      ctx.beginPath();
+      ctx.arc(targetX, targetY, 4, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = '9px monospace';
+      ctx.fillText(`TARGET: ${tz.floor}`, targetX, targetY - 14);
+
+      // If roof crew is unhooking, draw landing crew radar beacon
+      if (this.crewState === 'ROOF_UNRIGGING') {
+        ctx.strokeStyle = '#06b6d4';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(targetX, targetY, 18 + Math.sin(Date.now() / 150) * 4, 0, Math.PI * 2);
+        ctx.stroke();
+        ctx.fillStyle = '#06b6d4';
+        ctx.fillText('🏗️ CREW', targetX, targetY + 22);
+      }
+    }
 
     // # Rotating Jib & Counter-Jib Structure
     // # Math: 0 deg = North (-Y on screen) -> Radian = (slewAngleDeg - 90) * PI / 180
@@ -637,7 +1142,7 @@ class CranePhysicsEngine {
     // Working Jib Beam Line (Right)
     const jibTipX = centerX + Math.cos(slewRad) * radarRadius;
     const jibTipY = centerY + Math.sin(slewRad) * radarRadius;
-    ctx.strokeStyle = '#f59e0b';
+    ctx.strokeStyle = '#eab308';
     ctx.lineWidth = 4;
     ctx.beginPath();
     ctx.moveTo(centerX, centerY);
@@ -661,7 +1166,7 @@ class CranePhysicsEngine {
 
     // Mast Center Pivot Hub
     ctx.fillStyle = '#1e293b';
-    ctx.strokeStyle = '#f59e0b';
+    ctx.strokeStyle = '#eab308';
     ctx.lineWidth = 2;
     ctx.beginPath();
     ctx.arc(centerX, centerY, 8, 0, Math.PI * 2);
@@ -681,7 +1186,6 @@ class CranePhysicsEngine {
     ctx.strokeRect(trolleyX - 5, trolleyY - 5, 10, 10);
 
     // # Suspended Load Position with Pendulum Sway Vector
-    // # Radial sway shifts along jib line; Tangential sway shifts perpendicular to jib
     const perpSlewRad = slewRad + Math.PI / 2;
     const swingScale = 1.2; // Visual amplification of swing on radar
     const loadX = trolleyX + (Math.cos(slewRad) * this.pendulumRadialDeg * swingScale) +
@@ -699,11 +1203,24 @@ class CranePhysicsEngine {
     ctx.stroke();
     ctx.setLineDash([]);
 
-    // Suspended Load Circle
-    ctx.fillStyle = this.isInputShockActive ? '#ef4444' : '#f59e0b';
-    ctx.beginPath();
-    ctx.arc(loadX, loadY, 6, 0, Math.PI * 2);
-    ctx.fill();
+    // Suspended Hook / Load Circle
+    if (!this.hasLoad) {
+      // Empty hook ring
+      ctx.strokeStyle = this.isInputShockActive ? '#ef4444' : '#eab308';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.arc(loadX, loadY, 5, 0, Math.PI * 2);
+      ctx.stroke();
+    } else {
+      // Carrying Load circle
+      ctx.fillStyle = currentLoad ? currentLoad.color : (this.isInputShockActive ? '#ef4444' : '#f59e0b');
+      ctx.beginPath();
+      ctx.arc(loadX, loadY, 7, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.strokeStyle = '#fff';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
 
     // Panel Header Badge
     ctx.textAlign = 'left';
@@ -712,10 +1229,11 @@ class CranePhysicsEngine {
     ctx.fillText('360° SLEW RADAR & DROP ZONE', x + 16, y + 22);
     ctx.fillStyle = '#94a3b8';
     ctx.font = '10px monospace';
-    ctx.fillText(`BEARING: ${this.slewAngleDeg.toFixed(1)}° | RADIUS: ${this.trolleyRadiusM.toFixed(1)}m`, x + 16, y + 36);
+    const loadDesc = this.hasLoad && currentLoad ? `${currentLoad.name} (${currentLoad.massTonnes}t)` : 'EMPTY HOOK';
+    ctx.fillText(`BEARING: ${this.slewAngleDeg.toFixed(1)}° | RADIUS: ${this.trolleyRadiusM.toFixed(1)}m | ${loadDesc}`, x + 16, y + 36);
   }
 
-  // # Function: Render Right Half - Side-Elevation Height Gauge
+  // # Function: Render Right Half - Side-Elevation Height Gauge & 6-Story High-Rise
   renderSideElevation(ctx, x, y, width, height) {
     // # Background Fill
     ctx.fillStyle = '#050914';
@@ -726,21 +1244,24 @@ class CranePhysicsEngine {
     const marginB = 75;
     const groundY = y + height - marginB;
     const maxPlotHeight = height - marginB - 55;
-    const apexHeightM = 35.0; // Scale top height
+    const apexHeightM = 40.0; // Scale top height up to 40m for 36m mast + cathead apex
 
     // # Function: Convert elevation in meters to Canvas Y Coordinate
     // # Equation: py = groundY - (meters / apexHeightM) * maxPlotHeight
     const meterToY = (meters) => groundY - (meters / apexHeightM) * maxPlotHeight;
 
+    // # Coordinate Scale for Radius X
+    const scaleX = (r) => x + marginL + ((r - 4.0) / 44.0) * (width - marginL - 50);
+
     // # Vertical Elevation Ruler Axis
     ctx.strokeStyle = '#334155';
     ctx.lineWidth = 1.5;
     ctx.beginPath();
-    ctx.moveTo(x + marginL, y + 40);
+    ctx.moveTo(x + marginL, y + 35);
     ctx.lineTo(x + marginL, groundY);
     ctx.stroke();
 
-    // # Tick Marks (0m, 4m, 8m, 12m, 16m, 20m, 24m, 28m, 32m)
+    // # Tick Marks (0m to 40m in 4m increments)
     ctx.font = '9px monospace';
     ctx.fillStyle = '#94a3b8';
     ctx.textAlign = 'right';
@@ -764,71 +1285,297 @@ class CranePhysicsEngine {
     ctx.fillStyle = '#1e293b';
     ctx.fillRect(x + marginL, groundY, width - marginL - 16, marginB);
 
-    // # Draw Scaffolding Obstacles (Floor 1: 4m, Floor 2: 8m, Target Slab: 12m)
-    const scaleX = (r) => x + marginL + ((r - 4.0) / 44.0) * (width - marginL - 50);
+    // # Draw Ground Pickup Bay (0m at R = 16m)
+    const pickupBayX = scaleX(16.0);
+    ctx.fillStyle = 'rgba(16, 185, 129, 0.2)';
+    ctx.strokeStyle = '#10b981';
+    ctx.lineWidth = 2;
+    ctx.fillRect(pickupBayX - 22, groundY - 6, 44, 6);
+    ctx.strokeRect(pickupBayX - 22, groundY - 6, 44, 6);
 
-    CRANE_PHYSICS_CONFIG.OBSTACLES.forEach((obs) => {
-      const obsY = meterToY(obs.topHeightM);
-      const obsBaseY = meterToY(obs.baseHeightM);
-      const obsHeightPx = obsBaseY - obsY;
-      const obsStartX = scaleX(obs.minRM);
-      const obsWidthPx = scaleX(obs.maxRM) - obsStartX;
+    ctx.fillStyle = '#10b981';
+    ctx.font = '8px monospace';
+    ctx.textAlign = 'center';
+    ctx.fillText('0m PICKUP BAY', pickupBayX, groundY + 14);
 
-      ctx.fillStyle = obs.color === '#10b981' ? 'rgba(16, 185, 129, 0.25)' : 'rgba(51, 65, 85, 0.45)';
-      ctx.strokeStyle = obs.color;
-      ctx.lineWidth = 1.5;
-      ctx.fillRect(obsStartX, obsY, obsWidthPx, obsHeightPx);
-      ctx.strokeRect(obsStartX, obsY, obsWidthPx, obsHeightPx);
+    // If hook is empty and load is awaiting pickup, draw waiting payload on ground
+    const currentLoad = CRANE_PHYSICS_CONFIG.LOADS[this.currentLoadIndex];
+    if (!this.hasLoad && currentLoad) {
+      ctx.fillStyle = currentLoad.color;
+      ctx.strokeStyle = '#ffffff';
+      ctx.lineWidth = 1;
+      ctx.fillRect(pickupBayX - 12, groundY - 18, 24, 12);
+      ctx.strokeRect(pickupBayX - 12, groundY - 18, 24, 12);
+      ctx.fillStyle = '#0f172a';
+      ctx.font = 'bold 7px monospace';
+      ctx.fillText(`${currentLoad.massTonnes}t`, pickupBayX, groundY - 9);
+    }
 
-      // Label
-      ctx.fillStyle = obs.color;
-      ctx.font = '8px monospace';
+    // # -------------------------------------------------------------
+    // # Draw 6-Story High-Rise Building Architecture (Workbook 6.11)
+    // # -------------------------------------------------------------
+    const bldgMinX = scaleX(25.0);
+    const bldgMaxX = scaleX(37.0);
+    const bldgWidth = bldgMaxX - bldgMinX;
+    const roofY = meterToY(22.0);
+    const bldgHeight = groundY - roofY;
+
+    // Building Main Core Facade
+    ctx.fillStyle = 'rgba(30, 41, 59, 0.65)';
+    ctx.fillRect(bldgMinX, roofY, bldgWidth, bldgHeight);
+    ctx.strokeStyle = '#475569';
+    ctx.lineWidth = 1.5;
+    ctx.strokeRect(bldgMinX, roofY, bldgWidth, bldgHeight);
+
+    // Structural Concrete Columns (Left, Center, Right)
+    ctx.fillStyle = '#334155';
+    ctx.fillRect(bldgMinX, roofY, 8, bldgHeight);
+    ctx.fillRect(bldgMinX + bldgWidth / 2 - 4, roofY, 8, bldgHeight);
+    ctx.fillRect(bldgMaxX - 8, roofY, 8, bldgHeight);
+
+    // Draw Floor Slabs (GF 0m, 1F 3.5m, 2F 7m, 3F 10.5m, 4F 14m, 5F 18m, 6F Roof 22m)
+    CRANE_PHYSICS_CONFIG.BUILDING_FLOORS.forEach((floor) => {
+      const slabY = meterToY(floor.heightM);
+      const isTargetFloor = currentLoad && currentLoad.target.heightM === floor.heightM;
+
+      ctx.fillStyle = isTargetFloor ? 'rgba(16, 185, 129, 0.35)' : 'rgba(51, 65, 85, 0.9)';
+      ctx.strokeStyle = isTargetFloor ? '#10b981' : floor.color;
+      ctx.lineWidth = isTargetFloor ? 2 : 1;
+
+      // Slab beam
+      ctx.fillRect(bldgMinX, slabY - 3, bldgWidth, 6);
+      ctx.strokeRect(bldgMinX, slabY - 3, bldgWidth, 6);
+
+      // Floor Marker Label
+      ctx.fillStyle = isTargetFloor ? '#10b981' : '#94a3b8';
+      ctx.font = isTargetFloor ? 'bold 8px monospace' : '8px monospace';
       ctx.textAlign = 'left';
-      ctx.fillText(obs.name, obsStartX + 4, obsY + 12);
+      ctx.fillText(floor.label, bldgMaxX + 6, slabY + 3);
+
+      // Window Bays between floors
+      if (floor.heightM > 0 && floor.heightM <= 18.0) {
+        const prevSlabY = meterToY(floor.heightM - 3.5);
+        const winH = (prevSlabY - slabY) * 0.55;
+        const winY = slabY + 4;
+
+        ctx.fillStyle = 'rgba(56, 189, 248, 0.15)';
+        ctx.strokeStyle = 'rgba(56, 189, 248, 0.3)';
+        ctx.lineWidth = 1;
+
+        // Bay 1
+        ctx.fillRect(bldgMinX + 12, winY, (bldgWidth / 2) - 20, winH);
+        ctx.strokeRect(bldgMinX + 12, winY, (bldgWidth / 2) - 20, winH);
+
+        // Bay 2
+        ctx.fillRect(bldgMinX + (bldgWidth / 2) + 8, winY, (bldgWidth / 2) - 20, winH);
+        ctx.strokeRect(bldgMinX + (bldgWidth / 2) + 8, winY, (bldgWidth / 2) - 20, winH);
+      }
     });
 
-    // # Tower Mast Vertical Lattice (Left side of elevation view)
-    const mastX = x + marginL + 18;
-    const mastW = 20;
-    const cabY = meterToY(CRANE_PHYSICS_CONFIG.CAB_MAST_HEIGHT);
-
-    ctx.fillStyle = '#0f172a';
-    ctx.strokeStyle = '#475569';
-    ctx.lineWidth = 2;
-    ctx.fillRect(mastX, cabY, mastW, groundY - cabY);
-    ctx.strokeRect(mastX, cabY, mastW, groundY - cabY);
-
-    // Lattice Diagonals
+    // Roof Parapet / Handrails (Floor 6 Roof 22m)
     ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 1;
-    for (let my = cabY; my < groundY; my += 22) {
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(bldgMinX, roofY - 8);
+    ctx.lineTo(bldgMaxX, roofY - 8);
+    ctx.stroke();
+
+    // Handrail stanchions
+    for (let stX = bldgMinX; stX <= bldgMaxX; stX += 16) {
       ctx.beginPath();
-      ctx.moveTo(mastX, my);
-      ctx.lineTo(mastX + mastW, my + 22);
-      ctx.moveTo(mastX + mastW, my);
-      ctx.lineTo(mastX, my + 22);
+      ctx.moveTo(stX, roofY);
+      ctx.lineTo(stX, roofY - 8);
       ctx.stroke();
     }
 
-    // Working Jib Horizontal Beam at Apex
-    const jibStartX = mastX + mastW;
-    const jibEndX = x + width - 24;
-    ctx.strokeStyle = '#f59e0b';
-    ctx.lineWidth = 3;
+    // Render Delivered Loads Resting on Slabs
+    this.deliveredLoads.forEach((dl) => {
+      const landingY = meterToY(dl.target.heightM);
+      const landingX = scaleX(dl.target.radiusM);
+
+      ctx.fillStyle = dl.color;
+      ctx.strokeStyle = '#10b981';
+      ctx.lineWidth = 1.5;
+      ctx.fillRect(landingX - 10, landingY - 14, 20, 10);
+      ctx.strokeRect(landingX - 10, landingY - 14, 20, 10);
+
+      ctx.fillStyle = '#10b981';
+      ctx.font = 'bold 7px monospace';
+      ctx.textAlign = 'center';
+      ctx.fillText(`✓ ${dl.name.split(' ')[0]}`, landingX, landingY - 17);
+    });
+
+    // # -------------------------------------------------------------
+    // # Modern Tower Crane Lattice Mast & Machinery Apex
+    // # -------------------------------------------------------------
+    const mastX = x + marginL + 18;
+    const mastW = 24;
+    const mastTopY = meterToY(CRANE_PHYSICS_CONFIG.CAB_MAST_HEIGHT); // 36m height
+
+    // Mast Vertical Chords (Yellow Safety Enamel)
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 2.5;
+    ctx.fillRect(mastX, mastTopY, mastW, groundY - mastTopY);
+    ctx.strokeRect(mastX, mastTopY, mastW, groundY - mastTopY);
+
+    // Lattice Diagonal Cross-Bracing
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 1.2;
+    for (let my = mastTopY; my < groundY - 5; my += 18) {
+      ctx.beginPath();
+      ctx.moveTo(mastX, my);
+      ctx.lineTo(mastX + mastW, my + 18);
+      ctx.moveTo(mastX + mastW, my);
+      ctx.lineTo(mastX, my + 18);
+      ctx.stroke();
+    }
+
+    // Internal Climbing Ladder Rail
+    ctx.strokeStyle = 'rgba(234, 179, 8, 0.4)';
+    ctx.lineWidth = 1;
     ctx.beginPath();
-    ctx.moveTo(jibStartX, cabY);
-    ctx.lineTo(jibEndX, cabY);
+    ctx.moveTo(mastX + mastW / 2, mastTopY);
+    ctx.lineTo(mastX + mastW / 2, groundY);
     ctx.stroke();
 
-    // # Trolley Position
+    // Slewing Ring Bearing at 34m
+    const slewRingY = meterToY(34.2);
+    ctx.fillStyle = '#334155';
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 2;
+    ctx.fillRect(mastX - 3, slewRingY, mastW + 6, 6);
+    ctx.strokeRect(mastX - 3, slewRingY, mastW + 6, 6);
+
+    // Operator Cab at 33.5m - 35.5m (Right flank of mast)
+    const cabY = meterToY(35.5);
+    const cabW = 18;
+    const cabH = 18;
+    const cabX = mastX + mastW;
+
+    ctx.fillStyle = '#0f172a';
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(cabX, cabY, cabW, cabH);
+    ctx.strokeRect(cabX, cabY, cabW, cabH);
+
+    // Cab Glass Panes with cyan tint
+    ctx.fillStyle = 'rgba(56, 189, 248, 0.4)';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1;
+    ctx.fillRect(cabX + 2, cabY + 2, cabW - 4, cabH - 6);
+    ctx.strokeRect(cabX + 2, cabY + 2, cabW - 4, cabH - 6);
+
+    // Cab Sun Visor
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(cabX, cabY - 2, cabW + 3, 2);
+
+    // Operator figure inside cab
+    ctx.fillStyle = '#f97316';
+    ctx.beginPath();
+    ctx.arc(cabX + 8, cabY + 7, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // Cat-Head Apex Tower (A-Frame rising to 39m)
+    const catHeadApexY = meterToY(39.0);
+    const catHeadCenterX = mastX + mastW / 2;
+
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(mastX, mastTopY);
+    ctx.lineTo(catHeadCenterX, catHeadApexY);
+    ctx.lineTo(mastX + mastW, mastTopY);
+    ctx.stroke();
+
+    // Counter-Jib Structure (Extending Leftwards)
+    const counterJibLengthPx = 68;
+    const counterTipX = mastX - counterJibLengthPx;
+    const jibBeamY = mastTopY;
+
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 3;
+    ctx.beginPath();
+    ctx.moveTo(mastX, jibBeamY);
+    ctx.lineTo(counterTipX, jibBeamY);
+    ctx.stroke();
+
+    // Counter-Jib Tie Pendants from Cathead Apex
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(catHeadCenterX, catHeadApexY);
+    ctx.lineTo(counterTipX + 15, jibBeamY);
+    ctx.stroke();
+
+    // Counterweight Concrete Ballast Blocks
+    ctx.fillStyle = '#475569';
+    ctx.strokeStyle = '#64748b';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(counterTipX, jibBeamY - 4, 28, 16);
+    ctx.strokeRect(counterTipX, jibBeamY - 4, 28, 16);
+    ctx.fillStyle = '#e2e8f0';
+    ctx.font = '7px monospace';
+    ctx.fillText('BALLAST', counterTipX + 1, jibBeamY + 7);
+
+    // Working Jib Horizontal Beam at 36m (Apex)
+    const jibStartX = mastX + mastW;
+    const jibEndX = x + width - 20;
+
+    // Double chord truss
+    ctx.strokeStyle = '#eab308';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.moveTo(jibStartX, jibBeamY);
+    ctx.lineTo(jibEndX, jibBeamY);
+    ctx.moveTo(jibStartX, jibBeamY - 8);
+    ctx.lineTo(jibEndX - 20, jibBeamY);
+    ctx.stroke();
+
+    // Jib Truss Webbing
+    ctx.strokeStyle = '#ca8a04';
+    ctx.lineWidth = 1;
+    for (let jx = jibStartX; jx < jibEndX - 20; jx += 16) {
+      ctx.beginPath();
+      ctx.moveTo(jx, jibBeamY);
+      ctx.lineTo(jx + 8, jibBeamY - 8);
+      ctx.lineTo(jx + 16, jibBeamY);
+      ctx.stroke();
+    }
+
+    // Main Jib Pendant Stay Ropes from Cathead Apex to Jib
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(catHeadCenterX, catHeadApexY);
+    ctx.lineTo(scaleX(20.0), jibBeamY - 8);
+    ctx.moveTo(catHeadCenterX, catHeadApexY);
+    ctx.lineTo(scaleX(35.0), jibBeamY - 4);
+    ctx.stroke();
+
+    // # -------------------------------------------------------------
+    // # Trolley Carriage & Wheels
+    // # -------------------------------------------------------------
     const trolleyElevationX = scaleX(this.trolleyRadiusM);
-    const trolleyElevationY = cabY;
+    const trolleyElevationY = jibBeamY;
 
-    // Draw Trolley Carriage
-    ctx.fillStyle = '#38bdf8';
-    ctx.fillRect(trolleyElevationX - 8, trolleyElevationY - 5, 16, 10);
+    // Trolley Frame
+    ctx.fillStyle = '#0284c7';
+    ctx.strokeStyle = '#38bdf8';
+    ctx.lineWidth = 1.5;
+    ctx.fillRect(trolleyElevationX - 10, trolleyElevationY, 20, 8);
+    ctx.strokeRect(trolleyElevationX - 10, trolleyElevationY, 20, 8);
 
-    // # Hook Elevation & Pendulum Angular Deflection
+    // Trolley Wheels (Running on lower flange)
+    ctx.fillStyle = '#1e293b';
+    ctx.beginPath();
+    ctx.arc(trolleyElevationX - 7, trolleyElevationY - 1, 3, 0, Math.PI * 2);
+    ctx.arc(trolleyElevationX + 7, trolleyElevationY - 1, 3, 0, Math.PI * 2);
+    ctx.fill();
+
+    // # -------------------------------------------------------------
+    // # Hoist Cable Wire Rope & Hook Block with Pendulum Deflection
+    // # -------------------------------------------------------------
     const hookRestY = meterToY(this.hookElevationM);
     const cablePixelLength = hookRestY - trolleyElevationY;
 
@@ -837,25 +1584,145 @@ class CranePhysicsEngine {
     const hookX = trolleyElevationX + cablePixelLength * Math.sin(phiRad);
     const hookY = trolleyElevationY + cablePixelLength * Math.cos(phiRad);
 
-    // Hoist Cable Wire Rope
+    // 4-Fall Hoist Wire Rope (2 pairs of parallel thin silver wires)
     ctx.strokeStyle = '#e2e8f0';
-    ctx.lineWidth = 2;
+    ctx.lineWidth = 1.2;
     ctx.beginPath();
-    ctx.moveTo(trolleyElevationX, trolleyElevationY + 5);
-    ctx.lineTo(hookX, hookY);
+    ctx.moveTo(trolleyElevationX - 3, trolleyElevationY + 8);
+    ctx.lineTo(hookX - 3, hookY - 5);
+    ctx.moveTo(trolleyElevationX - 1, trolleyElevationY + 8);
+    ctx.lineTo(hookX - 1, hookY - 5);
+    ctx.moveTo(trolleyElevationX + 1, trolleyElevationY + 8);
+    ctx.lineTo(hookX + 1, hookY - 5);
+    ctx.moveTo(trolleyElevationX + 3, trolleyElevationY + 8);
+    ctx.lineTo(hookX + 3, hookY - 5);
     ctx.stroke();
 
-    // Hook Pulley Block & Heavy Payload Box
-    ctx.fillStyle = '#f59e0b';
+    // Heavy-Duty Hook Pulley Block (Alternating Yellow/Black Hazard Stripes)
+    const blockW = 14;
+    const blockH = 14;
+    ctx.save();
+    ctx.translate(hookX, hookY);
+    ctx.rotate(phiRad); // Rotate with pendulum angle
+
+    // Block body
+    ctx.fillStyle = '#eab308';
+    ctx.fillRect(-blockW / 2, -blockH / 2, blockW, blockH);
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 1;
+    ctx.strokeRect(-blockW / 2, -blockH / 2, blockW, blockH);
+
+    // Hazard Stripes on Hook Block
+    ctx.fillStyle = '#0f172a';
     ctx.beginPath();
-    ctx.arc(hookX, hookY, 5, 0, Math.PI * 2);
+    ctx.moveTo(-blockW / 2 + 2, -blockH / 2);
+    ctx.lineTo(-blockW / 2 + 7, -blockH / 2);
+    ctx.lineTo(-blockW / 2, -blockH / 2 + 7);
+    ctx.lineTo(-blockW / 2, -blockH / 2 + 2);
     ctx.fill();
 
-    ctx.fillStyle = this.isInputShockActive ? '#ef4444' : '#0284c7';
-    ctx.strokeStyle = this.isInputShockActive ? '#fca5a5' : '#38bdf8';
-    ctx.lineWidth = 1.5;
-    ctx.fillRect(hookX - 10, hookY + 5, 20, 16);
-    ctx.strokeRect(hookX - 10, hookY + 5, 20, 16);
+    ctx.beginPath();
+    ctx.moveTo(-blockW / 2 + 8, -blockH / 2);
+    ctx.lineTo(-blockW / 2 + 13, -blockH / 2);
+    ctx.lineTo(-blockW / 2, -blockH / 2 + 13);
+    ctx.lineTo(-blockW / 2, -blockH / 2 + 8);
+    ctx.fill();
+
+    // Heavy Curved Crane Hook with Safety Latch
+    ctx.strokeStyle = '#e2e8f0';
+    ctx.lineWidth = 2.5;
+    ctx.beginPath();
+    ctx.arc(0, blockH / 2 + 5, 5, -Math.PI / 2, Math.PI / 2);
+    ctx.lineTo(4, blockH / 2 + 10);
+    ctx.stroke();
+
+    // Spring Safety Latch
+    ctx.strokeStyle = '#ef4444';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(0, blockH / 2 + 1);
+    ctx.lineTo(3, blockH / 2 + 8);
+    ctx.stroke();
+
+    // # -------------------------------------------------------------
+    // # Suspended Load or Empty Hook Logic
+    // # -------------------------------------------------------------
+    if (this.hasLoad && currentLoad) {
+      if (this.riggingMode === 'ELECTRO_MAGNET') {
+        // Draw Electro-Magnet Attachment Unit
+        ctx.fillStyle = '#0891b2';
+        ctx.strokeStyle = '#22d3ee';
+        ctx.lineWidth = 2;
+        ctx.fillRect(-12, blockH / 2 + 11, 24, 6);
+        ctx.strokeRect(-12, blockH / 2 + 11, 24, 6);
+
+        // Magnetic Field Coils glow
+        ctx.fillStyle = '#67e8f9';
+        ctx.fillRect(-8, blockH / 2 + 13, 16, 2);
+
+        // Load Box attached directly to Magnet
+        ctx.fillStyle = currentLoad.color;
+        ctx.strokeStyle = '#fff';
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(-16, blockH / 2 + 17, 32, 18);
+        ctx.strokeRect(-16, blockH / 2 + 17, 32, 18);
+
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 8px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${currentLoad.name.split(' ')[0]}`, 0, blockH / 2 + 28);
+        ctx.fillText(`${currentLoad.massTonnes}t`, 0, blockH / 2 + 34);
+      } else {
+        // Ground Crew Hook Mode: 4-Leg Wire Rope Slings
+        const slingBottomY = blockH / 2 + 24;
+        ctx.strokeStyle = '#94a3b8';
+        ctx.lineWidth = 1.2;
+        ctx.beginPath();
+        // 4 sling legs from hook shackle to corners of load
+        ctx.moveTo(0, blockH / 2 + 10);
+        ctx.lineTo(-18, slingBottomY);
+        ctx.moveTo(0, blockH / 2 + 10);
+        ctx.lineTo(-8, slingBottomY);
+        ctx.moveTo(0, blockH / 2 + 10);
+        ctx.lineTo(8, slingBottomY);
+        ctx.moveTo(0, blockH / 2 + 10);
+        ctx.lineTo(18, slingBottomY);
+        ctx.stroke();
+
+        // Specific Payload Geometry
+        ctx.fillStyle = currentLoad.color;
+        ctx.strokeStyle = this.isInputShockActive ? '#ef4444' : '#ffffff';
+        ctx.lineWidth = 1.5;
+        ctx.fillRect(-20, slingBottomY, 40, 18);
+        ctx.strokeRect(-20, slingBottomY, 40, 18);
+
+        // Internal straps / ribs
+        ctx.strokeStyle = '#1e293b';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(-10, slingBottomY);
+        ctx.lineTo(-10, slingBottomY + 18);
+        ctx.moveTo(10, slingBottomY);
+        ctx.lineTo(10, slingBottomY + 18);
+        ctx.stroke();
+
+        // Payload Text Label
+        ctx.fillStyle = '#0f172a';
+        ctx.font = 'bold 8px monospace';
+        ctx.textAlign = 'center';
+        ctx.fillText(`${currentLoad.name.split(' ')[0]}`, 0, slingBottomY + 9);
+        ctx.fillText(`${currentLoad.massTonnes}t`, 0, slingBottomY + 16);
+
+        // Tagline hanging from right corner of load
+        ctx.strokeStyle = 'rgba(245, 158, 11, 0.7)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        ctx.moveTo(18, slingBottomY + 18);
+        ctx.lineTo(24, slingBottomY + 36);
+        ctx.stroke();
+      }
+    }
+    ctx.restore();
 
     // # Visual Pendulum Angle Arc Indicator
     if (Math.abs(this.pendulumRadialDeg) > 0.5) {
@@ -871,14 +1738,105 @@ class CranePhysicsEngine {
       ctx.fillText(`${this.pendulumRadialDeg.toFixed(1)}°`, trolleyElevationX + (phiRad > 0 ? 38 : -38), trolleyElevationY + 36);
     }
 
+    // # -------------------------------------------------------------
+    // # Animated Ground & Roof Rigger Sprites
+    // # -------------------------------------------------------------
+    if (this.crewState === 'GROUND_RIGGING') {
+      const riggerX = pickupBayX + 16;
+      const riggerY = groundY;
+
+      // Draw Rigger Figure (Hardhat, Hi-Vis Orange Vest, Navy Pants)
+      ctx.fillStyle = '#eab308'; // Hardhat
+      ctx.beginPath();
+      ctx.arc(riggerX, riggerY - 26, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#f97316'; // Hi-vis vest
+      ctx.fillRect(riggerX - 4, riggerY - 22, 8, 11);
+
+      // Silver reflective safety stripe
+      ctx.fillStyle = '#e2e8f0';
+      ctx.fillRect(riggerX - 4, riggerY - 17, 8, 2);
+
+      ctx.fillStyle = '#1e293b'; // Navy pants
+      ctx.fillRect(riggerX - 3, riggerY - 11, 3, 11);
+      ctx.fillRect(riggerX + 1, riggerY - 11, 3, 11);
+
+      // Rigging arms reaching toward load hook
+      ctx.strokeStyle = '#f97316';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(riggerX - 4, riggerY - 20);
+      ctx.lineTo(riggerX - 12, riggerY - 26);
+      ctx.stroke();
+
+      // Rigger Status Badge
+      const pct = Math.min(100, Math.round((this.crewTimer / this.crewDuration) * 100));
+      ctx.fillStyle = '#f97316';
+      ctx.font = 'bold 8px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(`👷 RIGGER ATTACHING SLING (${pct}%)`, riggerX - 10, riggerY - 34);
+    } else if (this.crewState === 'ROOF_UNRIGGING' && currentLoad) {
+      const targetSlabY = meterToY(currentLoad.target.heightM);
+      const riggerX = scaleX(currentLoad.target.radiusM) + 18;
+      const riggerY = targetSlabY - 3;
+
+      // Draw Roof Crew Worker
+      ctx.fillStyle = '#eab308'; // Hardhat
+      ctx.beginPath();
+      ctx.arc(riggerX, riggerY - 26, 4, 0, Math.PI * 2);
+      ctx.fill();
+
+      ctx.fillStyle = '#06b6d4'; // Cyan landing crew jacket
+      ctx.fillRect(riggerX - 4, riggerY - 22, 8, 11);
+
+      ctx.fillStyle = '#e2e8f0'; // Silver reflective stripe
+      ctx.fillRect(riggerX - 4, riggerY - 17, 8, 2);
+
+      ctx.fillStyle = '#1e293b'; // Work pants
+      ctx.fillRect(riggerX - 3, riggerY - 11, 3, 11);
+      ctx.fillRect(riggerX + 1, riggerY - 11, 3, 11);
+
+      // Status Badge
+      const pct = Math.min(100, Math.round((this.crewTimer / this.crewDuration) * 100));
+      ctx.fillStyle = '#06b6d4';
+      ctx.font = 'bold 8px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText(`🏗️ ROOF CREW UNHOOKING (${pct}%)`, riggerX, riggerY - 34);
+    }
+
+    // # -------------------------------------------------------------
+    // # Strict Rigger Safety Breach Emergency Overlay Banner
+    // # -------------------------------------------------------------
+    if (this.crewBreachTimer > 0) {
+      const bannerW = Math.min(380, width - 40);
+      const bannerH = 46;
+      const bannerX = x + (width - bannerW) / 2;
+      const bannerY = y + 50;
+
+      ctx.fillStyle = 'rgba(185, 28, 28, 0.95)';
+      ctx.strokeStyle = '#fca5a5';
+      ctx.lineWidth = 2.5;
+      ctx.fillRect(bannerX, bannerY, bannerW, bannerH);
+      ctx.strokeRect(bannerX, bannerY, bannerW, bannerH);
+
+      ctx.fillStyle = '#ffffff';
+      ctx.font = 'bold 11px system-ui';
+      ctx.textAlign = 'center';
+      ctx.fillText('⚠️ RIGGER SAFETY BREACH: CONTROLS MOVED DURING RIGGING!', bannerX + bannerW / 2, bannerY + 18);
+      ctx.fillStyle = '#fef08a';
+      ctx.font = '10px monospace';
+      ctx.fillText('-15% SAFETY PILLAR PENALTY APPLIED (LOLER PROHIBITION)', bannerX + bannerW / 2, bannerY + 34);
+    }
+
     // Panel Header Badge
     ctx.textAlign = 'left';
     ctx.fillStyle = '#f8fafc';
     ctx.font = 'bold 11px system-ui';
-    ctx.fillText('SIDE-ELEVATION HEIGHT GAUGE', x + 16, y + 22);
+    ctx.fillText('SIDE-ELEVATION HEIGHT GAUGE (6-STORY HIGH-RISE)', x + 16, y + 22);
     ctx.fillStyle = '#94a3b8';
     ctx.font = '10px monospace';
-    ctx.fillText(`HOOK HEIGHT: ${this.hookElevationM.toFixed(1)}m | CABLE L: ${this.cableLengthM.toFixed(1)}m`, x + 16, y + 36);
+    ctx.fillText(`HOOK HEIGHT: ${this.hookElevationM.toFixed(1)}m | CABLE L: ${this.cableLengthM.toFixed(1)}m | MAST: 36m`, x + 16, y + 36);
   }
 
   // # Function: Render Live Control Input Damping Oscilloscope
@@ -947,12 +1905,12 @@ class CranePhysicsEngine {
     return this.isEmergencyStopped;
   }
 
-  // # Function: Reset Kinematics to Initial Datum
+  // # Function: Reset Kinematics to Initial Datum & Multi-Load State
   resetPositions() {
-    this.slewAngleDeg = 0.0;
-    this.trolleyRadiusM = 24.5;
-    this.hookElevationM = 18.2;
-    this.cableLengthM = 13.8;
+    this.slewAngleDeg = 45.0;
+    this.trolleyRadiusM = 16.0;
+    this.hookElevationM = 8.0;
+    this.cableLengthM = 28.0;
     this.pendulumRadialDeg = 0.0;
     this.pendulumRadialVel = 0.0;
     this.pendulumTangentialDeg = 0.0;
@@ -960,6 +1918,18 @@ class CranePhysicsEngine {
     this.totalSwayAngleDeg = 0.0;
     this.filteredJerk = 0.0;
     this.isEmergencyStopped = false;
+
+    // # Tenstar Multi-Load & Crew State Reset
+    this.hasLoad = false;
+    this.currentLoadIndex = 0;
+    this.deliveredLoads = [];
+    this.crewState = 'IDLE';
+    this.crewTimer = 0.0;
+    this.crewSafetyBreach = false;
+    this.crewBreachMessage = '';
+    this.crewBreachTimer = 0.0;
+    this.magnetEngaged = false;
+    this.updateCallingButtonsDOM();
   }
 }
 

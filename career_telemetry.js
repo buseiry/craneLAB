@@ -67,42 +67,48 @@ const TENSTAR_SHIFT_CONTRACTS = [
     contractFeeNaira: 1500,
     benchmarkTimeSec: 180,
     windSpeedMs: 4.2,
-    targetRadiusM: 28.0,
+    targetRadiusM: 30.0,
     targetAngleDeg: 135.0,
-    targetHeightM: 12.0,
+    targetHeightM: 18.0,
+    targetFloor: '5th Floor Slab',
+    payloadName: 'Steel Rebar Bundle (2.4t)',
     maxPermissibleSwayDeg: 8.0,
     isBlindLift: false,
-    briefing: 'Lift test pallet from Ground Floor Bay (0m) to 3rd Floor Roof Slab (12m). Maintain steady slew path avoiding outrigger zones.'
+    briefing: 'Lift Steel Rebar Bundle (2.4t) from Ground Floor Bay (0m) to 5th Floor Slab (18m). Call Ground Crew to hook, lift safely, then call Roof Crew to unhook.'
   },
   {
     id: 'SHIFT_2_PLACING_BEAMS',
     exerciseCode: 'Tenstar 2.3',
     title: 'Tenstar 2.3: Precision I-Beam Placement',
-    location: 'TETFund Faculty Block B Scaffolding',
+    location: 'TETFund High-Rise Faculty Scaffolding',
     contractFeeNaira: 2500,
     benchmarkTimeSec: 150,
     windSpeedMs: 6.5,
-    targetRadiusM: 28.0,
-    targetAngleDeg: 135.0,
-    targetHeightM: 12.0,
+    targetRadiusM: 34.0,
+    targetAngleDeg: 150.0,
+    targetHeightM: 22.0,
+    targetFloor: '6th Floor Roof Deck',
+    payloadName: 'Precast Concrete Beam (3.5t)',
     maxPermissibleSwayDeg: 5.0, // # Strict sway constraint (< 5 deg required before lower)
     isBlindLift: false,
-    briefing: 'Lower heavy steel I-beam onto 3rd-floor structural pillars. Critical rule: Load sway MUST be under 5.0° before lowering or points deduct.'
+    briefing: 'Precision placement of Precast Concrete Beam (3.5t) on 6th Floor Roof Deck (22m). Critical rule: Load sway MUST be under 5.0° before lowering or points deduct.'
   },
   {
     id: 'SHIFT_3_BLIND_LIFT_POUR',
     exerciseCode: 'Tenstar 2.8 & 8.3',
-    title: 'Tenstar 2.8 & 8.3: Blind Concrete Pour',
-    location: 'Abuja High-Rise Core Shaft',
+    title: 'Tenstar 2.8 & 8.3: Blind Lift Chiller Placement',
+    location: 'Abuja High-Rise Roof Plant Deck',
     contractFeeNaira: 4000,
     benchmarkTimeSec: 210,
     windSpeedMs: 8.0,
     targetRadiusM: 28.0,
-    targetAngleDeg: 135.0,
-    targetHeightM: 12.0,
+    targetAngleDeg: 120.0,
+    targetHeightM: 22.0,
+    targetFloor: '6th Floor Roof Deck',
+    payloadName: 'HVAC Chiller Unit (1.8t)',
     maxPermissibleSwayDeg: 4.5,
     isBlindLift: true, // # Restricted operator vision: must follow signaller commands
-    briefing: 'Restricted-visibility pour behind external facade. Direct visual contact is blocked; operator must follow Banksman hand/radio cues exclusively.'
+    briefing: 'Restricted-visibility lift of HVAC Chiller (1.8t) to 6th Floor Roof Plant Deck behind external facade. Direct visual contact is blocked; operator must follow Banksman radio cues exclusively.'
   }
 ];
 
@@ -248,6 +254,39 @@ class CareerTelemetryEngine {
     }
   }
 
+  // # Function: Award Virtual Safety Naira Bonus for Successful Load Delivery
+  awardLoadDeliveryBonus(amountNaira = 15000) {
+    this.totalSafetyNaira += amountNaira;
+    console.log(`[CareerTelemetry] Payload Delivery Bonus Awarded: +₦${amountNaira.toLocaleString()}`);
+
+    // Update HUD Career registers
+    const nairaVal = document.getElementById('hud-career-naira');
+    if (nairaVal) nairaVal.textContent = `₦${this.totalSafetyNaira.toLocaleString()}`;
+
+    // Evaluate Career Promotion
+    this.evaluateRankProgression();
+
+    // Trigger visual notification toast
+    this.showDeliveryToast(`🎉 PAYLOAD DELIVERED! +₦${amountNaira.toLocaleString()} Safety Naira Credited!`);
+  }
+
+  // # Function: Display temporary toast on Cockpit HUD
+  showDeliveryToast(message) {
+    let toast = document.getElementById('delivery-toast-banner');
+    if (!toast) {
+      toast = document.createElement('div');
+      toast.id = 'delivery-toast-banner';
+      toast.className = 'delivery-toast-banner';
+      const cockpit = document.querySelector('.simulator-cockpit') || document.body;
+      cockpit.appendChild(toast);
+    }
+    toast.textContent = message;
+    toast.style.display = 'block';
+    setTimeout(() => {
+      if (toast) toast.style.display = 'none';
+    }, 3500);
+  }
+
   // ========================================================================
   // # SECTION 2: LIVE TENSTAR TELEMETRY PILLARS & SCORING EQUATIONS
   // ========================================================================
@@ -264,12 +303,25 @@ class CareerTelemetryEngine {
     // # A. QUALITY PILLAR EVALUATION (Workbook 6.11, Slide 52)
     // # Starts at 100%. Deduct for off-center target or rough touchdown.
     // # -------------------------------------------------------------
-    const target = PHYSICS_CFG.TARGET_ZONE;
+    // Dynamic target coordinates from current active payload
+    let target = {
+      radiusM: contract.targetRadiusM,
+      angleDeg: contract.targetAngleDeg,
+      heightM: contract.targetHeightM,
+      toleranceRadiusM: 2.5
+    };
+    if (physics.hasLoad && window.CRANE_PHYSICS_CONFIG && window.CRANE_PHYSICS_CONFIG.LOADS) {
+      const activeLoad = window.CRANE_PHYSICS_CONFIG.LOADS[physics.currentLoadIndex];
+      if (activeLoad && activeLoad.target) {
+        target = activeLoad.target;
+      }
+    }
+
     const radialErr = Math.abs(physics.trolleyRadiusM - target.radiusM);
     let angleErr = Math.abs(physics.slewAngleDeg - target.angleDeg);
     if (angleErr > 180) angleErr = 360 - angleErr;
 
-    // Detect touchdown on 3rd floor slab
+    // Detect touchdown on target slab
     if (physics.hookElevationM <= target.heightM + 0.3 && radialErr <= target.toleranceRadiusM + 2.0) {
       if (!this.isLandingInitiated) {
         this.isLandingInitiated = true;

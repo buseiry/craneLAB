@@ -434,9 +434,9 @@
           <div class="contract-select-group">
             <label for="contract-select-dropdown">Shift Contract:</label>
             <select id="contract-select-dropdown" class="form-control" style="width: auto; padding: 0.35rem 0.75rem; font-size: 0.78rem;" onchange="window.CareerTelemetry.selectShiftContract(parseInt(this.value))">
-              <option value="0" selected>Shift 1: Tenstar 2.1 Basic Lift (0m to 12m)</option>
-              <option value="1">Shift 2: Tenstar 2.3 Placing I-Beams (Sway &lt; 5°)</option>
-              <option value="2">Shift 3: Tenstar 2.8 Blind Lift (Radio Protocol)</option>
+              <option value="0" selected>Shift 1: Tenstar 2.1 Basic Lift (Rebar 2.4t to 5F 18m)</option>
+              <option value="1">Shift 2: Tenstar 2.3 Precision Placement (Beam 3.5t to 6F Roof 22m)</option>
+              <option value="2">Shift 3: Tenstar 2.8 Blind Lift (Chiller 1.8t to 6F Roof 22m)</option>
             </select>
           </div>
         </div>
@@ -537,6 +537,30 @@
               <span class="hud-chip" id="hud-operator-tag">OP: TF-TNS-2026-0842</span>
               <span class="hud-chip" id="hud-pendulum-tag">PENDULUM SWING: 0.0° (DAMPED)</span>
               <span class="hud-chip" id="hud-drop-status">TARGET DROP ZONE: IN BOUNDS</span>
+            </div>
+
+            <!-- Floating Calling Buttons Overlay (Tenstar Ground Crew & Electro-Magnet) -->
+            <div class="crew-calling-overlay">
+              <div class="crew-calling-card">
+                <button type="button" id="btn-call-ground-crew" class="btn-crew btn-ground-crew" onclick="if(window.CranePhysics) window.CranePhysics.callGroundCrew()">
+                  <span>📞👷 Call Ground Crew (Hook Load)</span>
+                </button>
+                <div id="hint-ground-crew" class="crew-hint">Lower Hook to Ground Pickup Zone (R:16m, θ:45°, H&lt;3m) to Call</div>
+              </div>
+
+              <div class="crew-calling-card">
+                <button type="button" id="btn-call-roof-crew" class="btn-crew btn-roof-crew" onclick="if(window.CranePhysics) window.CranePhysics.callRoofCrew()">
+                  <span>📞🏗️ Call 5th/6th Floor Crew (Unhook Load)</span>
+                </button>
+                <div id="hint-roof-crew" class="crew-hint">Deliver payload to 5th/6th Floor Deck to Unhook</div>
+              </div>
+
+              <div class="crew-calling-card">
+                <button type="button" id="btn-toggle-magnet" class="btn-crew btn-mode-toggle" onclick="if(window.CranePhysics) window.CranePhysics.toggleRiggingMode()">
+                  <span>🧲 Mode: <strong>GROUND/ROOF CREW</strong> (Click for Magnet)</span>
+                </button>
+                <div class="crew-hint">Toggle Rigging: Ground Crew Sling vs Electro-Magnet</div>
+              </div>
             </div>
           </div>
 
