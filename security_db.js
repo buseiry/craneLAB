@@ -11,7 +11,7 @@
 // # State Block: Global Security & Database Configuration Constants
 const CRANELAB_CONFIG = {
   DB_NAME: 'CraneLab_ASVAM_Pulse_DB',
-  DB_VERSION: 1,
+  DB_VERSION: 2,
   DEFAULT_SALT: 'TETFUND-TENSTAR-ASVAM-2026-UK-SAMMAX-SECURE-KEY',
   STORES: {
     CANDIDATE_PROFILE: 'candidate_profile',
@@ -40,42 +40,108 @@ class CraneLabSecurity {
     return hexString;
   }
 
-  // # Function: Stateless SHA-256 HMAC session token generator using Web Crypto API
+  // # Function: Pure-JavaScript SHA-256 fallback engine for offline or non-secure contexts (e.g. file:// protocol)
+  static pureJsSha256(ascii) {
+    function rightRotate(value, amount) {
+      return (value >>> amount) | (value << (32 - amount));
+    }
+    let result = '';
+    const words = [];
+    const asciiBitLength = ascii.length * 8;
+    let hash = [
+      0x6a09e667, 0xbb67ae85, 0x3c6ef372, 0xa54ff53a,
+      0x510e527f, 0x9b05688c, 0x1f83d9ab, 0x5be0cd19
+    ];
+    const k = [
+      0x428a2f98, 0x71374491, 0xb5c0fbcf, 0xe9b5dba5, 0x3956c25b, 0x59f111f1, 0x923f82a4, 0xab1c5ed5,
+      0xd807aa98, 0x12835b01, 0x243185be, 0x550c7dc3, 0x72be5d74, 0x80deb1fe, 0x9bdc06a7, 0xc19bf174,
+      0xe49b69c1, 0xefbe4786, 0x0fc19dc6, 0x240ca1cc, 0x2de92c6f, 0x4a7484aa, 0x5cb0a9dc, 0x76f988da,
+      0x983e5152, 0xa831c66d, 0xb00327c8, 0xbf597fc7, 0xc6e00bf3, 0xd5a79147, 0x06ca6351, 0x14292967,
+      0x27b70a85, 0x2e1b2138, 0x4d2c6dfc, 0x53380d13, 0x650a7354, 0x766a0abb, 0x81c2c92e, 0x92722c85,
+      0xa2bfe8a1, 0xa81a664b, 0xc24b8b70, 0xc76c51a3, 0xd192e819, 0xd6990624, 0xf40e3585, 0x106aa070,
+      0x19a4c116, 0x1e376c08, 0x2748774c, 0x34b0bcb5, 0x391c0cb3, 0x4ed8aa4a, 0x5b9cca4f, 0x682e6ff3,
+      0x748f82ee, 0x78a5636f, 0x84c87814, 0x8cc70208, 0x90befffa, 0xa4506ceb, 0xbef9a3f7, 0xc67178f2
+    ];
+
+    let i = 0;
+    for (i = 0; i < ascii.length; i++) {
+      words[i >> 2] |= (ascii.charCodeAt(i) & 0xff) << ((3 - (i % 4)) * 8);
+    }
+    words[asciiBitLength >> 5] |= 0x80 << (24 - (asciiBitLength % 32));
+    words[(((asciiBitLength + 64) >> 9) << 4) + 15] = asciiBitLength;
+
+    const w = new Array(64);
+    for (let j = 0; j < words.length; j += 16) {
+      const a_h = hash.slice(0);
+      for (i = 0; i < 64; i++) {
+        if (i < 16) {
+          w[i] = words[j + i] || 0;
+        } else {
+          const gamma0 = rightRotate(w[i - 15], 7) ^ rightRotate(w[i - 15], 18) ^ (w[i - 15] >>> 3);
+          const gamma1 = rightRotate(w[i - 2], 17) ^ rightRotate(w[i - 2], 19) ^ (w[i - 2] >>> 10);
+          w[i] = (w[i - 16] + gamma0 + w[i - 7] + gamma1) | 0;
+        }
+        const s1 = rightRotate(a_h[4], 6) ^ rightRotate(a_h[4], 11) ^ rightRotate(a_h[4], 25);
+        const ch = (a_h[4] & a_h[5]) ^ (~a_h[4] & a_h[6]);
+        const temp1 = (a_h[7] + s1 + ch + k[i] + w[i]) | 0;
+        const s0 = rightRotate(a_h[0], 2) ^ rightRotate(a_h[0], 13) ^ rightRotate(a_h[0], 22);
+        const maj = (a_h[0] & a_h[1]) ^ (a_h[0] & a_h[2]) ^ (a_h[1] & a_h[2]);
+        const temp2 = (s0 + maj) | 0;
+
+        a_h[7] = a_h[6];
+        a_h[6] = a_h[5];
+        a_h[5] = a_h[4];
+        a_h[4] = (a_h[3] + temp1) | 0;
+        a_h[3] = a_h[2];
+        a_h[2] = a_h[1];
+        a_h[1] = a_h[0];
+        a_h[0] = (temp1 + temp2) | 0;
+      }
+      for (i = 0; i < 8; i++) {
+        hash[i] = (hash[i] + a_h[i]) | 0;
+      }
+    }
+    for (i = 0; i < 8; i++) {
+      for (let b = 3; b >= 0; b--) {
+        const byte = (hash[i] >> (b * 8)) & 0xff;
+        result += ('0' + byte.toString(16)).slice(-2);
+      }
+    }
+    return result.toUpperCase();
+  }
+
+  // # Function: Stateless SHA-256 HMAC session token generator using Web Crypto API with pure JS fallback
   // # Equation: Token = HMAC-SHA256(Message = Candidate_ID + "::" + Cohort_Group + "::" + Timestamp, Key = Secret_Salt)
   static async generateSessionToken(candidateId, cohortGroup, timestamp, secretSalt = CRANELAB_CONFIG.DEFAULT_SALT) {
-    // # State Block: Validate input parameters before cryptographic derivation
-    if (!candidateId || !cohortGroup || !timestamp) {
-      throw new Error('Security Error: candidateId, cohortGroup, and timestamp are required for token synthesis');
-    }
-
+    const cid = (candidateId || 'CANDIDATE').trim().toUpperCase();
+    const cohort = (cohortGroup || 'GROUP').trim();
+    const ts = timestamp || Date.now();
     const salt = secretSalt && secretSalt.trim().length > 0 ? secretSalt : CRANELAB_CONFIG.DEFAULT_SALT;
-    const message = `${candidateId.trim().toUpperCase()}::${cohortGroup.trim()}::${timestamp}`;
+    const message = `${cid}::${cohort}::${ts}`;
 
     try {
-      // # State Block: Cryptographic Key Import via Web Crypto Subtle API
-      const keyData = this.stringToBuffer(salt);
-      const cryptoKey = await window.crypto.subtle.importKey(
-        'raw',
-        keyData,
-        { name: 'HMAC', hash: { name: 'SHA-256' } },
-        false,
-        ['sign']
-      );
+      if (window.crypto && window.crypto.subtle && typeof window.crypto.subtle.importKey === 'function') {
+        // # State Block: Cryptographic Key Import via Web Crypto Subtle API
+        const keyData = this.stringToBuffer(salt);
+        const cryptoKey = await window.crypto.subtle.importKey(
+          'raw',
+          keyData,
+          { name: 'HMAC', hash: { name: 'SHA-256' } },
+          false,
+          ['sign']
+        );
 
-      // # Equation: Digital signature calculation over message buffer
-      const messageData = this.stringToBuffer(message);
-      const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData);
-      
-      // # Return: Standardized 64-character uppercase hexadecimal HMAC digest
-      return this.bufferToHex(signatureBuffer).toUpperCase();
+        // # Equation: Digital signature calculation over message buffer
+        const messageData = this.stringToBuffer(message);
+        const signatureBuffer = await window.crypto.subtle.sign('HMAC', cryptoKey, messageData);
+        
+        // # Return: Standardized 64-character uppercase hexadecimal HMAC digest
+        return this.bufferToHex(signatureBuffer).toUpperCase();
+      }
     } catch (cryptoErr) {
-      // # Fallback Math Block: Direct SHA-256 Digest if HMAC import is restricted
-      console.warn('HMAC sign fallback to SHA-256 digest:', cryptoErr);
-      const combinedPayload = `${message}::${salt}`;
-      const payloadBuffer = this.stringToBuffer(combinedPayload);
-      const digestBuffer = await window.crypto.subtle.digest('SHA-256', payloadBuffer);
-      return this.bufferToHex(digestBuffer).toUpperCase();
+      console.warn('Web Crypto subtle HMAC fallback to pure JS SHA-256:', cryptoErr);
     }
+    return this.pureJsSha256(`${message}::${salt}`);
   }
 
   // # Function: Verify session token authenticity against Candidate and Cohort coordinates
@@ -83,7 +149,7 @@ class CraneLabSecurity {
     // # State Block: Re-derive expected token under identical parameters
     const expectedToken = await this.generateSessionToken(candidateId, cohortGroup, timestamp, secretSalt);
     // # Equation: Constant-time string equivalence comparison to mitigate side-channel timing attacks
-    if (expectedToken.length !== token.length) {
+    if (!token || expectedToken.length !== token.length) {
       return false;
     }
     let diff = 0;
@@ -97,10 +163,17 @@ class CraneLabSecurity {
   // # Equation: Checksum = SHA-256(Session_Token + "::" + Timestamp + "::" + Canonical_Payload)
   static async computeTelemetrySignature(sessionToken, timestamp, payload) {
     const canonicalPayload = typeof payload === 'string' ? payload : JSON.stringify(payload);
-    const signaturePreimage = `${sessionToken}::${timestamp}::${canonicalPayload}`;
-    const preimageBuffer = this.stringToBuffer(signaturePreimage);
-    const digestBuffer = await window.crypto.subtle.digest('SHA-256', preimageBuffer);
-    return this.bufferToHex(digestBuffer).toUpperCase();
+    const signaturePreimage = `${sessionToken || 'OFFLINE_TOKEN'}::${timestamp}::${canonicalPayload}`;
+    try {
+      if (window.crypto && window.crypto.subtle && typeof window.crypto.subtle.digest === 'function') {
+        const preimageBuffer = this.stringToBuffer(signaturePreimage);
+        const digestBuffer = await window.crypto.subtle.digest('SHA-256', preimageBuffer);
+        return this.bufferToHex(digestBuffer).toUpperCase();
+      }
+    } catch (e) {
+      // Fall through to pure JS SHA-256
+    }
+    return this.pureJsSha256(signaturePreimage);
   }
 
   // # Function: Audit Telemetry Record Integrity to prevent client-side score modification
@@ -339,16 +412,23 @@ class CraneLabDB {
   // # Function: Append authenticated Telemetry log entry with cryptographic signature
   async logTelemetry(candidateId, sessionToken, eventType, telemetryPayload) {
     const timestamp = Date.now();
-    // # Equation: Cryptographic digital signature generated over payload
-    const signature = await CraneLabSecurity.computeTelemetrySignature(
-      sessionToken,
-      timestamp,
-      telemetryPayload
-    );
+    const cleanId = (candidateId || 'UNKNOWN_CANDIDATE').toString().trim().toUpperCase();
+    const cleanToken = sessionToken || 'OFFLINE_TOKEN';
+    
+    let signature = 'SIGNATURE_FALLBACK';
+    try {
+      signature = await CraneLabSecurity.computeTelemetrySignature(
+        cleanToken,
+        timestamp,
+        telemetryPayload
+      );
+    } catch (sigErr) {
+      console.warn('Telemetry signature warning:', sigErr);
+    }
 
     const logEntry = {
-      candidateId: candidateId.trim().toUpperCase(),
-      sessionToken,
+      candidateId: cleanId,
+      sessionToken: cleanToken,
       timestamp,
       eventType,
       payload: telemetryPayload,
@@ -356,17 +436,24 @@ class CraneLabDB {
       isoDate: new Date(timestamp).toISOString()
     };
 
-    return this.executeTransaction(
-      CRANELAB_CONFIG.STORES.TELEMETRY_LOGS,
-      'readwrite',
-      (store) => {
-        const req = store.add(logEntry);
-        return new Promise((res, rej) => {
-          req.onsuccess = () => res({ ...logEntry, id: req.result });
-          req.onerror = () => rej(req.error);
-        });
-      }
-    );
+    try {
+      return await this.executeTransaction(
+        CRANELAB_CONFIG.STORES.TELEMETRY_LOGS,
+        'readwrite',
+        (store) => {
+          const req = store.add(logEntry);
+          return new Promise((res, rej) => {
+            req.onsuccess = () => res({ ...logEntry, id: req.result });
+            req.onerror = () => rej(req.error);
+          });
+        }
+      );
+    } catch (dbErr) {
+      console.warn('[CraneLabDB] IndexedDB logTelemetry stored to memory fallback:', dbErr);
+      this.inMemoryLogs = this.inMemoryLogs || [];
+      this.inMemoryLogs.push(logEntry);
+      return logEntry;
+    }
   }
 
   // # Function: Fetch Telemetry logs by Candidate ID with optional limit

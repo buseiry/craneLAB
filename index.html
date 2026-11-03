@@ -993,9 +993,11 @@
           activeTab.classList.add('active');
         }
 
-        // # State Block: Trigger canvas resize when entering view-c
+        // # State Block: Trigger canvas resize when entering view-c (immediate + delayed for layout reflow)
         if (viewId === 'view-c') {
           CraneLabApp.resizeCanvas();
+          setTimeout(() => CraneLabApp.resizeCanvas(), 50);
+          setTimeout(() => CraneLabApp.resizeCanvas(), 200);
         }
       }
 
@@ -1178,20 +1180,16 @@
       static async signOffInspectionGate() {
         CraneLabState.gates.gateB_Passed = true;
 
-        // # State Block: Log ASVAM sign-off telemetry with cryptographic signature
-        await window.CraneLabDB.logTelemetry(
-          CraneLabState.candidate.id,
-          CraneLabState.candidate.sessionToken,
-          'ASVAM_GATE_B_CLEARED',
-          { verifiedCount: 8, totalRiskAudited: CraneLabState.asvam.riskScoreTotal }
-        );
-
-        // # State Block: Unlock Gate C
+        // # State Block: Unlock Gate C Tab Immediately
         const tabC = document.getElementById('tab-btn-c');
-        tabC.classList.remove('locked');
-        tabC.removeAttribute('disabled');
-        document.getElementById('tab-status-b').textContent = '✓';
-        document.getElementById('tab-btn-b').classList.add('passed');
+        if (tabC) {
+          tabC.classList.remove('locked');
+          tabC.removeAttribute('disabled');
+        }
+        const tabStatusB = document.getElementById('tab-status-b');
+        if (tabStatusB) tabStatusB.textContent = '✓';
+        const tabBtnB = document.getElementById('tab-btn-b');
+        if (tabBtnB) tabBtnB.classList.add('passed');
 
         // # State Block: Initialize Simulator Clock & Tenstar Career Shift Contract
         CraneLabState.simulation.isRunning = true;
@@ -1200,8 +1198,22 @@
           window.CareerTelemetry.selectShiftContract(0);
         }
 
-        // # Transition to Gate C View
+        // # Transition Immediately to Gate C Cockpit View
         this.switchView('view-c');
+
+        // # State Block: Log ASVAM sign-off telemetry with non-blocking error resilience
+        try {
+          if (window.CraneLabDB && typeof window.CraneLabDB.logTelemetry === 'function') {
+            await window.CraneLabDB.logTelemetry(
+              CraneLabState.candidate.id || 'TF-TNS-2026-0842',
+              CraneLabState.candidate.sessionToken || 'OFFLINE_TOKEN',
+              'ASVAM_GATE_B_CLEARED',
+              { verifiedCount: 8, totalRiskAudited: CraneLabState.asvam.riskScoreTotal }
+            );
+          }
+        } catch (telemetryErr) {
+          console.warn('[CraneLabApp] Non-blocking telemetry log notice:', telemetryErr);
+        }
       }
 
       // ==========================================================
@@ -1322,15 +1334,20 @@
           lastTimestamp = currentTimestamp;
 
           if (window.CranePhysics) {
-            if (CraneLabState.simulation.isRunning && !CraneLabState.simulation.isEStopped) {
-              window.CranePhysics.update(dt);
+            try {
+              if (CraneLabState.simulation.isRunning && !CraneLabState.simulation.isEStopped) {
+                window.CranePhysics.update(dt);
 
-              // # State Block: Evaluate Tenstar Scoring Pillars & Site Crisis Events
-              if (window.CareerTelemetry) {
-                window.CareerTelemetry.update(window.CranePhysics, dt);
+                // # State Block: Evaluate Tenstar Scoring Pillars & Site Crisis Events
+                if (window.CareerTelemetry) {
+                  window.CareerTelemetry.update(window.CranePhysics, dt);
+                }
               }
+              window.CranePhysics.render();
+            } catch (frameErr) {
+              // Frame render error caught to prevent breaking the requestAnimationFrame cycle
+              console.warn('[CraneLab] Physics render cycle warning:', frameErr);
             }
-            window.CranePhysics.render();
           }
 
           requestAnimationFrame(renderLoop);

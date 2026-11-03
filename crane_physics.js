@@ -489,6 +489,9 @@ class CranePhysicsEngine {
     const w = this.canvas.width;
     const h = this.canvas.height;
 
+    // # Safety Guard: Do not attempt to render into a collapsed, hidden, or zero-dimension canvas
+    if (w < 100 || h < 100) return;
+
     // # Clear whole frame
     ctx.clearRect(0, 0, w, h);
 
@@ -522,7 +525,7 @@ class CranePhysicsEngine {
     ctx.setLineDash([]); // Reset dash
 
     // # Render Floating Control Input Damping Oscilloscope (Bottom Deck)
-    this.renderOscilloscope(ctx, 16, h - 54, w - 32, 44);
+    this.renderOscilloscope(ctx, 16, Math.max(10, h - 54), Math.max(50, w - 32), 44);
   }
 
   // # Function: Render Left Half - 360-Degree Slew Radar
@@ -534,13 +537,14 @@ class CranePhysicsEngine {
     // # Radar Center Origin (Mast Location)
     const centerX = x + width / 2;
     const centerY = y + height / 2 - 16;
-    const radarRadius = Math.min(width / 2 - 36, height / 2 - 48);
+    // # Clamped radar radius preventing negative or degenerate radius on hidden canvas
+    const radarRadius = Math.max(20, Math.min(width / 2 - 36, height / 2 - 48));
 
     // # Radar Outer Degree Scale Ring
     ctx.strokeStyle = '#334155';
     ctx.lineWidth = 2;
     ctx.beginPath();
-    ctx.arc(centerX, centerY, radarRadius, 0, Math.PI * 2);
+    ctx.arc(centerX, centerY, Math.max(1, radarRadius), 0, Math.PI * 2);
     ctx.stroke();
 
     // # Radar Concentric Distance Range Rings (10m, 20m, 30m, 40m, 50m)
@@ -548,7 +552,7 @@ class CranePhysicsEngine {
     ctx.font = '10px monospace';
     ctx.fillStyle = '#64748b';
     ranges.forEach((r) => {
-      const ringPx = (r / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius;
+      const ringPx = Math.max(1, (r / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius);
       ctx.strokeStyle = 'rgba(51, 65, 85, 0.45)';
       ctx.lineWidth = 1;
       ctx.beginPath();
@@ -580,8 +584,8 @@ class CranePhysicsEngine {
     CRANE_PHYSICS_CONFIG.EXCLUSION_ZONES.forEach((zone) => {
       const startRad = ((zone.startAngleDeg - 90) * Math.PI) / 180;
       const endRad = ((zone.endAngleDeg - 90) * Math.PI) / 180;
-      const innerPx = (zone.minRadiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius;
-      const outerPx = (zone.maxRadiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius;
+      const innerPx = Math.max(1, (zone.minRadiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius);
+      const outerPx = Math.max(innerPx + 2, (zone.maxRadiusM / CRANE_PHYSICS_CONFIG.JIB_LENGTH_MAX) * radarRadius);
 
       ctx.fillStyle = 'rgba(239, 68, 68, 0.2)';
       ctx.strokeStyle = '#ef4444';
@@ -904,8 +908,8 @@ class CranePhysicsEngine {
     // Oscilloscope Rolling Waveform
     const waveX = x + 10;
     const waveY = y + 20;
-    const waveW = width - 20;
-    const waveH = height - 24;
+    const waveW = Math.max(10, width - 20);
+    const waveH = Math.max(10, height - 24);
 
     ctx.strokeStyle = 'rgba(51, 65, 85, 0.5)';
     ctx.lineWidth = 1;

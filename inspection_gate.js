@@ -803,12 +803,35 @@ class InspectionGateController {
       return false;
     }
 
-    // # State Block: Auto-persist all workbook answers to IndexedDB
-    await this.persistWorkbookToDatabase();
+    // # State Block: Auto-persist all workbook answers to IndexedDB (non-blocking if DB issue)
+    try {
+      await this.persistWorkbookToDatabase();
+    } catch (saveErr) {
+      console.warn('[InspectionGate] Workbook auto-persist warning:', saveErr);
+    }
 
     // # State Block: Hand off execution to CraneLabApp to energize simulator
-    if (window.CraneLabApp && typeof window.CraneLabApp.signOffInspectionGate === 'function') {
-      window.CraneLabApp.signOffInspectionGate();
+    try {
+      if (window.CraneLabApp && typeof window.CraneLabApp.signOffInspectionGate === 'function') {
+        await window.CraneLabApp.signOffInspectionGate();
+      } else if (window.CraneLabApp && typeof window.CraneLabApp.switchView === 'function') {
+        window.CraneLabApp.switchView('view-c');
+      }
+    } catch (transitionErr) {
+      console.error('[InspectionGate] Error during cockpit energization:', transitionErr);
+      // Hard Fallback: Ensure Gate C unlocks and user enters simulator cockpit
+      if (window.CraneLabState) {
+        window.CraneLabState.gates.gateB_Passed = true;
+        window.CraneLabState.simulation.isRunning = true;
+      }
+      const tabC = document.getElementById('tab-btn-c');
+      if (tabC) {
+        tabC.classList.remove('locked');
+        tabC.removeAttribute('disabled');
+      }
+      if (window.CraneLabApp && typeof window.CraneLabApp.switchView === 'function') {
+        window.CraneLabApp.switchView('view-c');
+      }
     }
     return true;
   }
