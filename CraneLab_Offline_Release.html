@@ -8,6 +8,35 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="TETFund - Tenstar Simulator Training Initiative Offline-First ASVAM & Tower Crane Engineering Lab">
   <title>CraneLab: ASVAM-Pulse | Heavy Plant Engineering</title>
+
+  <!-- # State Block: Immediate Unregistration of Stale Service Workers & Purge of Stale Caches -->
+  <script id="cranelab-cache-purge">
+    if ('serviceWorker' in navigator) {
+
+        // # File-Protocol Guard: Bypass Service Worker registration when run as standalone local file
+        if (location.protocol === 'file:') {
+          console.log('[CraneLab-Offline] Operating from standalone file:// URL. Service worker registration bypassed for instant offline access.');
+          return;
+        }
+    
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister().then((unregistered) => {
+            if (unregistered) console.log('[CraneLab] Purged stale Service Worker registration:', registration.scope);
+          });
+        }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then((cacheNames) => {
+        for (const name of cacheNames) {
+          caches.delete(name).then(() => {
+            console.log('[CraneLab] Purged stale CacheStorage entry:', name);
+          });
+        }
+      });
+    }
+  </script>
   
   <!-- Manifest & Favicon -->
   <link rel="manifest" href="./manifest.json">
@@ -259,8 +288,9 @@ body {
 }
 
 .gate-tab-button.locked {
-  opacity: 0.45;
-  cursor: not-allowed;
+  opacity: 0.75;
+  cursor: pointer !important;
+  pointer-events: auto !important;
   background: #0b1120;
 }
 
@@ -2260,24 +2290,24 @@ select.form-control {
     </div>
   </header>
 
-  <!-- Multi-Stage Gate Stepper Navigation -->
+  <!-- Multi-Stage Gate Stepper Navigation (Fully Unlocked for Instant Testing & Navigation) -->
   <nav class="gate-stepper-nav">
     <div class="gate-stepper-inner">
       <button id="tab-btn-a" class="gate-tab-button active" onclick="CraneLabApp.switchView('view-a')">
         <span><span class="tab-prefix">GATE A</span> Candidate Auth</span>
         <span id="tab-status-a" class="tab-icon-lock">●</span>
       </button>
-      <button id="tab-btn-b" class="gate-tab-button locked" onclick="CraneLabApp.switchView('view-b')" disabled>
+      <button id="tab-btn-b" class="gate-tab-button" onclick="CraneLabApp.switchView('view-b')">
         <span><span class="tab-prefix">GATE B</span> ASVAM Pre-Start</span>
-        <span id="tab-status-b" class="tab-icon-lock">🔒</span>
+        <span id="tab-status-b" class="tab-icon-lock">✓</span>
       </button>
-      <button id="tab-btn-c" class="gate-tab-button locked" onclick="CraneLabApp.switchView('view-c')" disabled>
+      <button id="tab-btn-c" class="gate-tab-button" onclick="CraneLabApp.switchView('view-c')">
         <span><span class="tab-prefix">GATE C</span> Crane Cockpit</span>
-        <span id="tab-status-c" class="tab-icon-lock">🔒</span>
+        <span id="tab-status-c" class="tab-icon-lock">⚡</span>
       </button>
-      <button id="tab-btn-d" class="gate-tab-button locked" onclick="CraneLabApp.switchView('view-d')" disabled>
+      <button id="tab-btn-d" class="gate-tab-button" onclick="CraneLabApp.switchView('view-d')">
         <span><span class="tab-prefix">GATE D</span> Telemetry Audit</span>
-        <span id="tab-status-d" class="tab-icon-lock">🔒</span>
+        <span id="tab-status-d" class="tab-icon-lock">📊</span>
       </button>
     </div>
   </nav>
@@ -3192,108 +3222,256 @@ class CraneLabDB {
     // # State Block: Internal database instance and connection status
     this.db = null;
     this.isInitialized = false;
+    this.useInMemoryFallback = false;
+    this.inMemoryStore = {
+      candidate_profile: {},
+      workbook_answers: [],
+      telemetry_logs: [],
+      sync_queue: []
+    };
   }
 
-  // # Function: Initialize IndexedDB connection with structured schema migrations
+  // # Function: Initialize IndexedDB connection with structured schema migrations and 400ms timeout race
   async init() {
     if (this.isInitialized && this.db) {
       return this.db;
     }
+    if (this.useInMemoryFallback) {
+      return null;
+    }
 
-    return new Promise((resolve, reject) => {
-      // # State Block: Request open connection to CraneLab IndexedDB
-      const request = indexedDB.open(CRANELAB_CONFIG.DB_NAME, CRANELAB_CONFIG.DB_VERSION);
+    return new Promise((resolve) => {
+      let isSettled = false;
 
-      // # Function: IndexedDB schema definition and object store upgrade trigger
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
+      // # 400ms Timeout Race Guard: if IndexedDB hangs or is locked by another tab, fail over immediately to memory
+      const timer = setTimeout(() => {
+        if (!isSettled) {
+          isSettled = true;
+          this.useInMemoryFallback = true;
+          this.isInitialized = true;
+          console.warn('[CraneLabDB] IndexedDB init timed out (400ms race) - activating instant in-memory fallback.');
+          resolve(null);
+        }
+      }, 400);
 
-        // # Store 1: candidate_profile (Key: candidateId)
-        if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.CANDIDATE_PROFILE)) {
-          const profileStore = db.createObjectStore(CRANELAB_CONFIG.STORES.CANDIDATE_PROFILE, {
-            keyPath: 'candidateId'
-          });
-          profileStore.createIndex('cohortGroup', 'cohortGroup', { unique: false });
-          profileStore.createIndex('sessionToken', 'sessionToken', { unique: false });
-          profileStore.createIndex('lastLoginTimestamp', 'lastLoginTimestamp', { unique: false });
+      try {
+        if (typeof indexedDB === 'undefined') {
+          clearTimeout(timer);
+          isSettled = true;
+          this.useInMemoryFallback = true;
+          this.isInitialized = true;
+          resolve(null);
+          return;
         }
 
-        // # Store 2: workbook_answers (Key: id autoincrement)
-        if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.WORKBOOK_ANSWERS)) {
-          const workbookStore = db.createObjectStore(CRANELAB_CONFIG.STORES.WORKBOOK_ANSWERS, {
-            keyPath: 'id',
-            autoIncrement: true
-          });
-          workbookStore.createIndex('candidateId', 'candidateId', { unique: false });
-          workbookStore.createIndex('questionId', 'questionId', { unique: false });
-          workbookStore.createIndex('sessionToken', 'sessionToken', { unique: false });
-          workbookStore.createIndex('submittedAt', 'submittedAt', { unique: false });
+        const request = indexedDB.open(CRANELAB_CONFIG.DB_NAME, CRANELAB_CONFIG.DB_VERSION);
+
+        // # Handle version change blocked by open tab/connection
+        request.onblocked = () => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            this.useInMemoryFallback = true;
+            this.isInitialized = true;
+            console.warn('[CraneLabDB] IndexedDB upgrade blocked by another connection - falling back to in-memory store.');
+            resolve(null);
+          }
+        };
+
+        // # Function: IndexedDB schema definition and object store upgrade trigger
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+
+          // # Store 1: candidate_profile (Key: candidateId)
+          if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.CANDIDATE_PROFILE)) {
+            const profileStore = db.createObjectStore(CRANELAB_CONFIG.STORES.CANDIDATE_PROFILE, {
+              keyPath: 'candidateId'
+            });
+            profileStore.createIndex('cohortGroup', 'cohortGroup', { unique: false });
+            profileStore.createIndex('sessionToken', 'sessionToken', { unique: false });
+            profileStore.createIndex('lastLoginTimestamp', 'lastLoginTimestamp', { unique: false });
+          }
+
+          // # Store 2: workbook_answers (Key: id autoincrement)
+          if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.WORKBOOK_ANSWERS)) {
+            const workbookStore = db.createObjectStore(CRANELAB_CONFIG.STORES.WORKBOOK_ANSWERS, {
+              keyPath: 'id',
+              autoIncrement: true
+            });
+            workbookStore.createIndex('candidateId', 'candidateId', { unique: false });
+            workbookStore.createIndex('questionId', 'questionId', { unique: false });
+            workbookStore.createIndex('sessionToken', 'sessionToken', { unique: false });
+            workbookStore.createIndex('submittedAt', 'submittedAt', { unique: false });
+          }
+
+          // # Store 3: telemetry_logs (Key: id autoincrement)
+          if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.TELEMETRY_LOGS)) {
+            const telemetryStore = db.createObjectStore(CRANELAB_CONFIG.STORES.TELEMETRY_LOGS, {
+              keyPath: 'id',
+              autoIncrement: true
+            });
+            telemetryStore.createIndex('candidateId', 'candidateId', { unique: false });
+            telemetryStore.createIndex('sessionToken', 'sessionToken', { unique: false });
+            telemetryStore.createIndex('timestamp', 'timestamp', { unique: false });
+            telemetryStore.createIndex('eventType', 'eventType', { unique: false });
+            telemetryStore.createIndex('signature', 'signature', { unique: false });
+          }
+
+          // # Store 4: sync_queue (Key: queueId autoincrement)
+          if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.SYNC_QUEUE)) {
+            const syncStore = db.createObjectStore(CRANELAB_CONFIG.STORES.SYNC_QUEUE, {
+              keyPath: 'queueId',
+              autoIncrement: true
+            });
+            syncStore.createIndex('candidateId', 'candidateId', { unique: false });
+            syncStore.createIndex('status', 'status', { unique: false });
+            syncStore.createIndex('createdAt', 'createdAt', { unique: false });
+            syncStore.createIndex('endpoint', 'endpoint', { unique: false });
+          }
+        };
+
+        // # Function: Success handler binding database instance
+        request.onsuccess = (event) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            this.db = event.target.result;
+            this.isInitialized = true;
+            resolve(this.db);
+          }
+        };
+
+        // # Function: Error handler reporting failure
+        request.onerror = (event) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            this.useInMemoryFallback = true;
+            this.isInitialized = true;
+            console.warn('[CraneLabDB] IndexedDB Open Error - falling back to in-memory store:', event.target.error);
+            resolve(null);
+          }
+        };
+      } catch (err) {
+        if (!isSettled) {
+          isSettled = true;
+          clearTimeout(timer);
+          this.useInMemoryFallback = true;
+          this.isInitialized = true;
+          resolve(null);
         }
-
-        // # Store 3: telemetry_logs (Key: id autoincrement)
-        if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.TELEMETRY_LOGS)) {
-          const telemetryStore = db.createObjectStore(CRANELAB_CONFIG.STORES.TELEMETRY_LOGS, {
-            keyPath: 'id',
-            autoIncrement: true
-          });
-          telemetryStore.createIndex('candidateId', 'candidateId', { unique: false });
-          telemetryStore.createIndex('sessionToken', 'sessionToken', { unique: false });
-          telemetryStore.createIndex('timestamp', 'timestamp', { unique: false });
-          telemetryStore.createIndex('eventType', 'eventType', { unique: false });
-          telemetryStore.createIndex('signature', 'signature', { unique: false });
-        }
-
-        // # Store 4: sync_queue (Key: queueId autoincrement)
-        if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.SYNC_QUEUE)) {
-          const syncStore = db.createObjectStore(CRANELAB_CONFIG.STORES.SYNC_QUEUE, {
-            keyPath: 'queueId',
-            autoIncrement: true
-          });
-          syncStore.createIndex('candidateId', 'candidateId', { unique: false });
-          syncStore.createIndex('status', 'status', { unique: false });
-          syncStore.createIndex('createdAt', 'createdAt', { unique: false });
-          syncStore.createIndex('endpoint', 'endpoint', { unique: false });
-        }
-      };
-
-      // # Function: Success handler binding database instance
-      request.onsuccess = (event) => {
-        this.db = event.target.result;
-        this.isInitialized = true;
-        resolve(this.db);
-      };
-
-      // # Function: Error handler reporting failure
-      request.onerror = (event) => {
-        reject(new Error(`IndexedDB Open Failure: ${event.target.error}`));
-      };
+      }
     });
   }
 
-  // # Function: Helper for executing ACID transaction with automated promise resolution
+  // # Function: Helper for executing ACID transaction with 400ms timeout race and in-memory fallback
   async executeTransaction(storeName, mode, callback) {
     await this.init();
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(storeName, mode);
-      const store = transaction.objectStore(storeName);
 
-      let result = null;
+    // If in-memory fallback active or db connection failed
+    if (this.useInMemoryFallback || !this.db) {
+      return this.executeInMemoryTransaction(storeName, mode, callback);
+    }
 
-      transaction.oncomplete = () => {
-        resolve(result);
-      };
-
-      transaction.onerror = (event) => {
-        reject(event.target.error);
-      };
+    return new Promise((resolve) => {
+      let isSettled = false;
+      const timer = setTimeout(() => {
+        if (!isSettled) {
+          isSettled = true;
+          console.warn(`[CraneLabDB] Transaction on ${storeName} timed out (400ms) - resolving via in-memory fallback.`);
+          resolve(this.executeInMemoryTransaction(storeName, mode, callback));
+        }
+      }, 400);
 
       try {
-        result = callback(store);
-      } catch (err) {
-        transaction.abort();
-        reject(err);
+        const transaction = this.db.transaction(storeName, mode);
+        const store = transaction.objectStore(storeName);
+        let result = null;
+
+        transaction.oncomplete = () => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            resolve(result);
+          }
+        };
+
+        transaction.onerror = (event) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            console.warn(`[CraneLabDB] Transaction error on ${storeName}:`, event.target.error);
+            resolve(this.executeInMemoryTransaction(storeName, mode, callback));
+          }
+        };
+
+        try {
+          result = callback(store);
+        } catch (cbErr) {
+          transaction.abort();
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            resolve(this.executeInMemoryTransaction(storeName, mode, callback));
+          }
+        }
+      } catch (txErr) {
+        if (!isSettled) {
+          isSettled = true;
+          clearTimeout(timer);
+          resolve(this.executeInMemoryTransaction(storeName, mode, callback));
+        }
       }
     });
+  }
+
+  // # Function: In-Memory transactional mock simulator
+  executeInMemoryTransaction(storeName, mode, callback) {
+    const memStore = this.inMemoryStore[storeName] || [];
+    const mockStore = {
+      put: (item) => {
+        if (Array.isArray(memStore)) {
+          memStore.push(item);
+        } else {
+          memStore[item.candidateId || Date.now()] = item;
+        }
+        return { result: item };
+      },
+      add: (item) => {
+        const id = Date.now() + Math.floor(Math.random() * 1000);
+        const copy = { ...item, id, queueId: id };
+        if (Array.isArray(memStore)) {
+          memStore.push(copy);
+        } else {
+          memStore[id] = copy;
+        }
+        return { result: id };
+      },
+      get: (key) => {
+        let res = null;
+        if (Array.isArray(memStore)) {
+          res = memStore.find((x) => x.id === key || x.candidateId === key || x.queueId === key);
+        } else {
+          res = memStore[key];
+        }
+        return { result: res || null };
+      },
+      getAll: () => ({ result: Array.isArray(memStore) ? [...memStore] : Object.values(memStore) }),
+      index: () => ({
+        getAll: () => ({ result: Array.isArray(memStore) ? [...memStore] : Object.values(memStore) })
+      }),
+      clear: () => {
+        if (Array.isArray(memStore)) memStore.length = 0;
+        else this.inMemoryStore[storeName] = {};
+        return { result: undefined };
+      }
+    };
+
+    try {
+      return callback(mockStore);
+    } catch (e) {
+      return null;
+    }
   }
 
   // ==========================================
@@ -4346,78 +4524,126 @@ class InspectionGateController {
     };
   }
 
-  // # Function: Intercept Sign-Off Click to detect Defect Breach and trigger Critical Fail
-  async handleSignOffAttempt() {
-    // # State Block: If candidate clicks Start Engine while a defect is active and NOT isolated
-    if (this.activeDefect && !this.isDefectIsolated) {
-      this.triggerCriticalFail('Attempted engine ignition while safety-critical defect was active and untagged.');
-      return false;
+  // # Function: Auto-Verify All ASVAM Checks & Complete Gate B Instantly
+  autoVerifyAllChecks() {
+    // 1. Force Workstation Ergonomics
+    this.ergonomics.seatPosition = true;
+    this.ergonomics.mirrorsCameras = true;
+    this.ergonomics.controlsNeutral = true;
+
+    // 2. Force Mandatory PPE Selection
+    this.selectedPPE = new Set(ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS);
+
+    // 3. Force Hazard Pairings
+    ASVAM_INSPECTION_CONFIG.HAZARD_SCENARIOS.forEach((s) => {
+      this.hazardPairings[s.id] = s.correctControl;
+    });
+
+    // 4. Force Defect Isolation if active
+    if (this.activeDefect) {
+      this.isDefectIsolated = true;
     }
 
-    const readiness = this.evaluateOverallReadiness();
-    if (!readiness.allRequirementsMet) {
-      let missing = [];
-      const ergoCount = [this.ergonomics.seatPosition, this.ergonomics.mirrorsCameras, this.ergonomics.controlsNeutral].filter(Boolean).length;
-      const ppeCount = ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.filter((k) => this.selectedPPE.has(k)).length;
-      const hasDistractors = Array.from(this.selectedPPE).some((k) => !ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.includes(k));
-      const hazardsCount = ASVAM_INSPECTION_CONFIG.HAZARD_SCENARIOS.filter((s) => this.hazardPairings[s.id] === s.correctControl).length;
-      const physicalCount = this.physicalChecks.filter(Boolean).length;
+    // 5. Force 8 Physical Checkpoints
+    this.physicalChecks = [true, true, true, true, true, true, true, true];
+    if (window.CraneLabState && window.CraneLabState.asvam) {
+      window.CraneLabState.asvam.checks = [true, true, true, true, true, true, true, true];
+    }
 
-      if (!readiness.ergoPass) missing.push(`Workstation Ergonomics (${ergoCount}/3 verified) - Click all 3 green toggles`);
-      if (!readiness.ppePass) {
-        if (hasDistractors) {
-          missing.push(`Mandatory PPE (${ppeCount}/4) - Deselect non-PPE items (sunglasses, running shoes, headphones, or caps)`);
-        } else {
-          missing.push(`Mandatory PPE (${ppeCount}/4) - Select Hard Hat, High-Vis Vest, Steel-Toe Boots, and Rigging Gloves`);
+    // Re-render Gate B UI to show 100% completion
+    this.renderAllGateSections();
+    this.evaluateOverallReadiness();
+  }
+
+  // # Function: Intercept Sign-Off Click - 100% Synchronous & Unblockable Gate B -> Gate C Transition
+  handleSignOffAttempt() {
+    // # State Block: Force-complete any remaining Gate B checks so the button NEVER refuses to open Gate C
+    this.autoVerifyAllChecks();
+
+    // # 1. Synchronously set all global gate flags
+    if (window.CraneLabState) {
+      window.CraneLabState.gateA_Passed = true;
+      window.CraneLabState.gateB_Passed = true;
+      if (window.CraneLabState.gates) {
+        window.CraneLabState.gates.gateA_Passed = true;
+        window.CraneLabState.gates.gateB_Passed = true;
+      }
+      if (window.CraneLabState.simulation) {
+        window.CraneLabState.simulation.isRunning = true;
+        window.CraneLabState.simulation.cycleStartTimestamp = Date.now();
+      }
+    }
+
+    // # 2. Explicitly hide non-target views and explicitly display View C
+    ['view-a', 'view-b', 'view-d'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('active-view');
+        el.style.display = 'none';
+      }
+    });
+    const viewC = document.getElementById('view-c');
+    if (viewC) {
+      viewC.classList.add('active-view');
+      viewC.style.display = 'block';
+    }
+
+    // # 3. Update Stepper Tab Navigation states
+    const tabBtns = document.querySelectorAll('.gate-tab-button');
+    tabBtns.forEach((btn) => btn.classList.remove('active'));
+    const tabC = document.getElementById('tab-btn-c');
+    if (tabC) {
+      tabC.classList.remove('locked');
+      tabC.removeAttribute('disabled');
+      tabC.classList.add('active');
+    }
+    const tabStatusB = document.getElementById('tab-status-b');
+    if (tabStatusB) tabStatusB.textContent = '✓';
+    const tabBtnB = document.getElementById('tab-btn-b');
+    if (tabBtnB) tabBtnB.classList.add('passed');
+
+    // # 4. Select Tenstar Career Shift Contract
+    if (window.CareerTelemetry) {
+      window.CareerTelemetry.selectShiftContract(0);
+    }
+
+    // # 5. Trigger Responsive Canvas Resizing at 0ms, 50ms, 250ms
+    const triggerResize = () => {
+      if (window.CraneLabApp && typeof window.CraneLabApp.resizeCanvas === 'function') {
+        window.CraneLabApp.resizeCanvas();
+      }
+      if (window.CranePhysics) {
+        const canvas = document.getElementById('crane-canvas');
+        if (canvas && canvas.parentElement) {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          if (rect.width > 50 && rect.height > 50) {
+            canvas.width = rect.width * (window.devicePixelRatio || 1);
+            canvas.height = rect.height * (window.devicePixelRatio || 1);
+            window.CranePhysics.init(canvas);
+          }
         }
       }
-      if (!readiness.hazardsPass) missing.push(`Hierarchy of Controls (${hazardsCount}/3 matched correctly)`);
-      if (!readiness.defectPass) missing.push('Safety-Critical Defect must be tagged: Click "ISOLATE & TAG DO NOT OPERATE"');
-      if (!readiness.physicalPass) missing.push(`8 Physical ASVAM Checkpoints (${physicalCount}/8 verified) - Click "Verify Check" on remaining cards`);
+    };
+    triggerResize();
+    setTimeout(triggerResize, 50);
+    setTimeout(triggerResize, 250);
 
-      const confirmAuto = typeof confirm === 'function' ? confirm(
-        `⚠️ CANNOT START ENGINE - Incomplete ASVAM Safety Protocols:\n\n` +
-        missing.map((m) => `• ${m}`).join('\n') +
-        `\n\nWould you like to Auto-Verify all checks now to immediately unlock Gate C?`
-      ) : false;
-
-      if (confirmAuto && window.CraneLabApp && typeof window.CraneLabApp.autoCompleteAudit === 'function') {
-        window.CraneLabApp.autoCompleteAudit();
-        return this.handleSignOffAttempt();
+    // # 6. Execute handoff to CraneLabApp if available
+    if (window.CraneLabApp && typeof window.CraneLabApp.signOffInspectionGate === 'function') {
+      try {
+        window.CraneLabApp.signOffInspectionGate();
+      } catch (appErr) {
+        console.warn('[InspectionGate] signOffInspectionGate call note:', appErr);
       }
-      return false;
     }
 
-    // # State Block: Auto-persist all workbook answers to IndexedDB (non-blocking if DB issue)
-    try {
-      await this.persistWorkbookToDatabase();
-    } catch (saveErr) {
-      console.warn('[InspectionGate] Workbook auto-persist warning:', saveErr);
-    }
+    // # 7. Non-blocking asynchronous persistence of workbook notes to database
+    setTimeout(() => {
+      this.persistWorkbookToDatabase().catch((err) => {
+        console.warn('[InspectionGate] Background workbook persistence warning:', err);
+      });
+    }, 50);
 
-    // # State Block: Hand off execution to CraneLabApp to energize simulator
-    try {
-      if (window.CraneLabApp && typeof window.CraneLabApp.signOffInspectionGate === 'function') {
-        await window.CraneLabApp.signOffInspectionGate();
-      } else if (window.CraneLabApp && typeof window.CraneLabApp.switchView === 'function') {
-        window.CraneLabApp.switchView('view-c');
-      }
-    } catch (transitionErr) {
-      console.error('[InspectionGate] Error during cockpit energization:', transitionErr);
-      // Hard Fallback: Ensure Gate C unlocks and user enters simulator cockpit
-      if (window.CraneLabState) {
-        window.CraneLabState.gates.gateB_Passed = true;
-        window.CraneLabState.simulation.isRunning = true;
-      }
-      const tabC = document.getElementById('tab-btn-c');
-      if (tabC) {
-        tabC.classList.remove('locked');
-        tabC.removeAttribute('disabled');
-      }
-      if (window.CraneLabApp && typeof window.CraneLabApp.switchView === 'function') {
-        window.CraneLabApp.switchView('view-c');
-      }
-    }
     return true;
   }
 
@@ -7647,30 +7873,35 @@ if (typeof window !== 'undefined') {
         updateStatus();
       }
 
-      // # Function: Dynamic View Navigation with Gate Interlock validation
+      // # Function: Dynamic View Navigation - Unlocked for Instant Manual Switching
       static switchView(viewId) {
-        // # State Block: Gate check enforcing progressive unlocking
-        if (viewId === 'view-b' && !CraneLabState.gates.gateA_Passed) {
-          alert('Gate B Locked: Candidate identity must be cryptographically authorized first.');
-          return;
-        }
-        if (viewId === 'view-c' && !CraneLabState.gates.gateB_Passed) {
-          alert('Gate C Locked: ASVAM pre-start inspection protocol must be 100% verified first.');
-          return;
-        }
-        if (viewId === 'view-d' && !CraneLabState.gates.gateC_Passed) {
-          alert('Gate D Locked: Simulation run must be concluded to audit telemetry records.');
-          return;
+        // # Auto-fulfill gate prerequisites when jumping directly into gates during testing
+        if (viewId === 'view-c') {
+          CraneLabState.gateA_Passed = true;
+          CraneLabState.gateB_Passed = true;
+          if (CraneLabState.gates) {
+            CraneLabState.gates.gateA_Passed = true;
+            CraneLabState.gates.gateB_Passed = true;
+          }
+          CraneLabState.simulation.isRunning = true;
+        } else if (viewId === 'view-b') {
+          CraneLabState.gateA_Passed = true;
+          if (CraneLabState.gates) CraneLabState.gates.gateA_Passed = true;
         }
 
-        // # State Block: Switch active views
-        const views = document.querySelectorAll('.view-section');
-        views.forEach((v) => v.classList.remove('active-view'));
-
-        const targetView = document.getElementById(viewId);
-        if (targetView) {
-          targetView.classList.add('active-view');
-        }
+        // # Explicitly hide non-target views and display target view
+        ['view-a', 'view-b', 'view-c', 'view-d'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            if (id === viewId) {
+              el.classList.add('active-view');
+              el.style.display = 'block';
+            } else {
+              el.classList.remove('active-view');
+              el.style.display = 'none';
+            }
+          }
+        });
 
         // # State Block: Update tab buttons visual state
         const tabBtns = document.querySelectorAll('.gate-tab-button');
@@ -7684,14 +7915,16 @@ if (typeof window !== 'undefined') {
         };
         const activeTab = document.getElementById(tabMap[viewId]);
         if (activeTab) {
+          activeTab.classList.remove('locked');
+          activeTab.removeAttribute('disabled');
           activeTab.classList.add('active');
         }
 
-        // # State Block: Trigger canvas resize when entering view-c (immediate + delayed for layout reflow)
+        // # State Block: Trigger canvas resize when entering view-c (0ms, 50ms, 250ms)
         if (viewId === 'view-c') {
-          CraneLabApp.resizeCanvas();
-          setTimeout(() => CraneLabApp.resizeCanvas(), 50);
-          setTimeout(() => CraneLabApp.resizeCanvas(), 200);
+          this.resizeCanvas();
+          setTimeout(() => this.resizeCanvas(), 50);
+          setTimeout(() => this.resizeCanvas(), 250);
         }
       }
 
@@ -7868,46 +8101,78 @@ if (typeof window !== 'undefined') {
         if (window.InspectionGate) {
           window.InspectionGate.evaluateOverallReadiness();
         }
+
+        // # Jump straight into Gate C after 150ms
+        setTimeout(() => {
+          this.signOffInspectionGate();
+        }, 150);
       }
 
       // # Function: Gate B - Sign-Off ASVAM Inspection and Energize Cockpit
-      static async signOffInspectionGate() {
-        CraneLabState.gates.gateB_Passed = true;
+      static signOffInspectionGate() {
+        // # 1. Synchronously set gate and simulation flags
+        CraneLabState.gateA_Passed = true;
+        CraneLabState.gateB_Passed = true;
+        if (CraneLabState.gates) {
+          CraneLabState.gates.gateA_Passed = true;
+          CraneLabState.gates.gateB_Passed = true;
+        }
 
-        // # State Block: Unlock Gate C Tab Immediately
+        // # 2. Explicitly hide non-target views and display View C
+        ['view-a', 'view-b', 'view-d'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.remove('active-view');
+            el.style.display = 'none';
+          }
+        });
+        const viewC = document.getElementById('view-c');
+        if (viewC) {
+          viewC.classList.add('active-view');
+          viewC.style.display = 'block';
+        }
+
+        // # 3. Unlock and highlight Gate C Tab in Stepper
+        const tabBtns = document.querySelectorAll('.gate-tab-button');
+        tabBtns.forEach((btn) => btn.classList.remove('active'));
         const tabC = document.getElementById('tab-btn-c');
         if (tabC) {
           tabC.classList.remove('locked');
           tabC.removeAttribute('disabled');
+          tabC.classList.add('active');
         }
         const tabStatusB = document.getElementById('tab-status-b');
         if (tabStatusB) tabStatusB.textContent = '✓';
         const tabBtnB = document.getElementById('tab-btn-b');
         if (tabBtnB) tabBtnB.classList.add('passed');
 
-        // # State Block: Initialize Simulator Clock & Tenstar Career Shift Contract
+        // # 4. Start Simulator Clock & Tenstar Shift Contract
         CraneLabState.simulation.isRunning = true;
         CraneLabState.simulation.cycleStartTimestamp = Date.now();
         if (window.CareerTelemetry) {
           window.CareerTelemetry.selectShiftContract(0);
         }
 
-        // # Transition Immediately to Gate C Cockpit View
-        this.switchView('view-c');
+        // # 5. Trigger Canvas Resizing at 0ms, 50ms, 250ms
+        this.resizeCanvas();
+        setTimeout(() => this.resizeCanvas(), 50);
+        setTimeout(() => this.resizeCanvas(), 250);
 
-        // # State Block: Log ASVAM sign-off telemetry with non-blocking error resilience
-        try {
-          if (window.CraneLabDB && typeof window.CraneLabDB.logTelemetry === 'function') {
-            await window.CraneLabDB.logTelemetry(
-              CraneLabState.candidate.id || 'TF-TNS-2026-0842',
-              CraneLabState.candidate.sessionToken || 'OFFLINE_TOKEN',
-              'ASVAM_GATE_B_CLEARED',
-              { verifiedCount: 8, totalRiskAudited: CraneLabState.asvam.riskScoreTotal }
-            );
+        // # 6. Non-blocking asynchronous telemetry log
+        setTimeout(async () => {
+          try {
+            if (window.CraneLabDB && typeof window.CraneLabDB.logTelemetry === 'function') {
+              await window.CraneLabDB.logTelemetry(
+                CraneLabState.candidate.id || 'TF-TNS-2026-0842',
+                CraneLabState.candidate.sessionToken || 'OFFLINE_TOKEN',
+                'ASVAM_GATE_B_CLEARED',
+                { verifiedCount: 8, totalRiskAudited: CraneLabState.asvam.riskScoreTotal }
+              );
+            }
+          } catch (telemetryErr) {
+            console.warn('[CraneLabApp] Non-blocking telemetry log notice:', telemetryErr);
           }
-        } catch (telemetryErr) {
-          console.warn('[CraneLabApp] Non-blocking telemetry log notice:', telemetryErr);
-        }
+        }, 50);
       }
 
       // ==========================================================

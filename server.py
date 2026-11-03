@@ -20,7 +20,7 @@ from urllib.parse import urlparse, parse_qs
 
 # # State Block: Server Configuration and File Storage Paths
 HOST = "0.0.0.0"
-PORT = 8080
+PORT = int(os.environ.get("PORT", 8085))
 BASE_DIR = Path(__file__).parent.resolve()
 DB_FILE = BASE_DIR / "server_database.json"
 

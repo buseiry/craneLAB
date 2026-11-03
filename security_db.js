@@ -195,108 +195,256 @@ class CraneLabDB {
     // # State Block: Internal database instance and connection status
     this.db = null;
     this.isInitialized = false;
+    this.useInMemoryFallback = false;
+    this.inMemoryStore = {
+      candidate_profile: {},
+      workbook_answers: [],
+      telemetry_logs: [],
+      sync_queue: []
+    };
   }
 
-  // # Function: Initialize IndexedDB connection with structured schema migrations
+  // # Function: Initialize IndexedDB connection with structured schema migrations and 400ms timeout race
   async init() {
     if (this.isInitialized && this.db) {
       return this.db;
     }
+    if (this.useInMemoryFallback) {
+      return null;
+    }
 
-    return new Promise((resolve, reject) => {
-      // # State Block: Request open connection to CraneLab IndexedDB
-      const request = indexedDB.open(CRANELAB_CONFIG.DB_NAME, CRANELAB_CONFIG.DB_VERSION);
+    return new Promise((resolve) => {
+      let isSettled = false;
 
-      // # Function: IndexedDB schema definition and object store upgrade trigger
-      request.onupgradeneeded = (event) => {
-        const db = event.target.result;
+      // # 400ms Timeout Race Guard: if IndexedDB hangs or is locked by another tab, fail over immediately to memory
+      const timer = setTimeout(() => {
+        if (!isSettled) {
+          isSettled = true;
+          this.useInMemoryFallback = true;
+          this.isInitialized = true;
+          console.warn('[CraneLabDB] IndexedDB init timed out (400ms race) - activating instant in-memory fallback.');
+          resolve(null);
+        }
+      }, 400);
 
-        // # Store 1: candidate_profile (Key: candidateId)
-        if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.CANDIDATE_PROFILE)) {
-          const profileStore = db.createObjectStore(CRANELAB_CONFIG.STORES.CANDIDATE_PROFILE, {
-            keyPath: 'candidateId'
-          });
-          profileStore.createIndex('cohortGroup', 'cohortGroup', { unique: false });
-          profileStore.createIndex('sessionToken', 'sessionToken', { unique: false });
-          profileStore.createIndex('lastLoginTimestamp', 'lastLoginTimestamp', { unique: false });
+      try {
+        if (typeof indexedDB === 'undefined') {
+          clearTimeout(timer);
+          isSettled = true;
+          this.useInMemoryFallback = true;
+          this.isInitialized = true;
+          resolve(null);
+          return;
         }
 
-        // # Store 2: workbook_answers (Key: id autoincrement)
-        if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.WORKBOOK_ANSWERS)) {
-          const workbookStore = db.createObjectStore(CRANELAB_CONFIG.STORES.WORKBOOK_ANSWERS, {
-            keyPath: 'id',
-            autoIncrement: true
-          });
-          workbookStore.createIndex('candidateId', 'candidateId', { unique: false });
-          workbookStore.createIndex('questionId', 'questionId', { unique: false });
-          workbookStore.createIndex('sessionToken', 'sessionToken', { unique: false });
-          workbookStore.createIndex('submittedAt', 'submittedAt', { unique: false });
+        const request = indexedDB.open(CRANELAB_CONFIG.DB_NAME, CRANELAB_CONFIG.DB_VERSION);
+
+        // # Handle version change blocked by open tab/connection
+        request.onblocked = () => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            this.useInMemoryFallback = true;
+            this.isInitialized = true;
+            console.warn('[CraneLabDB] IndexedDB upgrade blocked by another connection - falling back to in-memory store.');
+            resolve(null);
+          }
+        };
+
+        // # Function: IndexedDB schema definition and object store upgrade trigger
+        request.onupgradeneeded = (event) => {
+          const db = event.target.result;
+
+          // # Store 1: candidate_profile (Key: candidateId)
+          if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.CANDIDATE_PROFILE)) {
+            const profileStore = db.createObjectStore(CRANELAB_CONFIG.STORES.CANDIDATE_PROFILE, {
+              keyPath: 'candidateId'
+            });
+            profileStore.createIndex('cohortGroup', 'cohortGroup', { unique: false });
+            profileStore.createIndex('sessionToken', 'sessionToken', { unique: false });
+            profileStore.createIndex('lastLoginTimestamp', 'lastLoginTimestamp', { unique: false });
+          }
+
+          // # Store 2: workbook_answers (Key: id autoincrement)
+          if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.WORKBOOK_ANSWERS)) {
+            const workbookStore = db.createObjectStore(CRANELAB_CONFIG.STORES.WORKBOOK_ANSWERS, {
+              keyPath: 'id',
+              autoIncrement: true
+            });
+            workbookStore.createIndex('candidateId', 'candidateId', { unique: false });
+            workbookStore.createIndex('questionId', 'questionId', { unique: false });
+            workbookStore.createIndex('sessionToken', 'sessionToken', { unique: false });
+            workbookStore.createIndex('submittedAt', 'submittedAt', { unique: false });
+          }
+
+          // # Store 3: telemetry_logs (Key: id autoincrement)
+          if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.TELEMETRY_LOGS)) {
+            const telemetryStore = db.createObjectStore(CRANELAB_CONFIG.STORES.TELEMETRY_LOGS, {
+              keyPath: 'id',
+              autoIncrement: true
+            });
+            telemetryStore.createIndex('candidateId', 'candidateId', { unique: false });
+            telemetryStore.createIndex('sessionToken', 'sessionToken', { unique: false });
+            telemetryStore.createIndex('timestamp', 'timestamp', { unique: false });
+            telemetryStore.createIndex('eventType', 'eventType', { unique: false });
+            telemetryStore.createIndex('signature', 'signature', { unique: false });
+          }
+
+          // # Store 4: sync_queue (Key: queueId autoincrement)
+          if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.SYNC_QUEUE)) {
+            const syncStore = db.createObjectStore(CRANELAB_CONFIG.STORES.SYNC_QUEUE, {
+              keyPath: 'queueId',
+              autoIncrement: true
+            });
+            syncStore.createIndex('candidateId', 'candidateId', { unique: false });
+            syncStore.createIndex('status', 'status', { unique: false });
+            syncStore.createIndex('createdAt', 'createdAt', { unique: false });
+            syncStore.createIndex('endpoint', 'endpoint', { unique: false });
+          }
+        };
+
+        // # Function: Success handler binding database instance
+        request.onsuccess = (event) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            this.db = event.target.result;
+            this.isInitialized = true;
+            resolve(this.db);
+          }
+        };
+
+        // # Function: Error handler reporting failure
+        request.onerror = (event) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            this.useInMemoryFallback = true;
+            this.isInitialized = true;
+            console.warn('[CraneLabDB] IndexedDB Open Error - falling back to in-memory store:', event.target.error);
+            resolve(null);
+          }
+        };
+      } catch (err) {
+        if (!isSettled) {
+          isSettled = true;
+          clearTimeout(timer);
+          this.useInMemoryFallback = true;
+          this.isInitialized = true;
+          resolve(null);
         }
-
-        // # Store 3: telemetry_logs (Key: id autoincrement)
-        if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.TELEMETRY_LOGS)) {
-          const telemetryStore = db.createObjectStore(CRANELAB_CONFIG.STORES.TELEMETRY_LOGS, {
-            keyPath: 'id',
-            autoIncrement: true
-          });
-          telemetryStore.createIndex('candidateId', 'candidateId', { unique: false });
-          telemetryStore.createIndex('sessionToken', 'sessionToken', { unique: false });
-          telemetryStore.createIndex('timestamp', 'timestamp', { unique: false });
-          telemetryStore.createIndex('eventType', 'eventType', { unique: false });
-          telemetryStore.createIndex('signature', 'signature', { unique: false });
-        }
-
-        // # Store 4: sync_queue (Key: queueId autoincrement)
-        if (!db.objectStoreNames.contains(CRANELAB_CONFIG.STORES.SYNC_QUEUE)) {
-          const syncStore = db.createObjectStore(CRANELAB_CONFIG.STORES.SYNC_QUEUE, {
-            keyPath: 'queueId',
-            autoIncrement: true
-          });
-          syncStore.createIndex('candidateId', 'candidateId', { unique: false });
-          syncStore.createIndex('status', 'status', { unique: false });
-          syncStore.createIndex('createdAt', 'createdAt', { unique: false });
-          syncStore.createIndex('endpoint', 'endpoint', { unique: false });
-        }
-      };
-
-      // # Function: Success handler binding database instance
-      request.onsuccess = (event) => {
-        this.db = event.target.result;
-        this.isInitialized = true;
-        resolve(this.db);
-      };
-
-      // # Function: Error handler reporting failure
-      request.onerror = (event) => {
-        reject(new Error(`IndexedDB Open Failure: ${event.target.error}`));
-      };
+      }
     });
   }
 
-  // # Function: Helper for executing ACID transaction with automated promise resolution
+  // # Function: Helper for executing ACID transaction with 400ms timeout race and in-memory fallback
   async executeTransaction(storeName, mode, callback) {
     await this.init();
-    return new Promise((resolve, reject) => {
-      const transaction = this.db.transaction(storeName, mode);
-      const store = transaction.objectStore(storeName);
 
-      let result = null;
+    // If in-memory fallback active or db connection failed
+    if (this.useInMemoryFallback || !this.db) {
+      return this.executeInMemoryTransaction(storeName, mode, callback);
+    }
 
-      transaction.oncomplete = () => {
-        resolve(result);
-      };
-
-      transaction.onerror = (event) => {
-        reject(event.target.error);
-      };
+    return new Promise((resolve) => {
+      let isSettled = false;
+      const timer = setTimeout(() => {
+        if (!isSettled) {
+          isSettled = true;
+          console.warn(`[CraneLabDB] Transaction on ${storeName} timed out (400ms) - resolving via in-memory fallback.`);
+          resolve(this.executeInMemoryTransaction(storeName, mode, callback));
+        }
+      }, 400);
 
       try {
-        result = callback(store);
-      } catch (err) {
-        transaction.abort();
-        reject(err);
+        const transaction = this.db.transaction(storeName, mode);
+        const store = transaction.objectStore(storeName);
+        let result = null;
+
+        transaction.oncomplete = () => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            resolve(result);
+          }
+        };
+
+        transaction.onerror = (event) => {
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            console.warn(`[CraneLabDB] Transaction error on ${storeName}:`, event.target.error);
+            resolve(this.executeInMemoryTransaction(storeName, mode, callback));
+          }
+        };
+
+        try {
+          result = callback(store);
+        } catch (cbErr) {
+          transaction.abort();
+          if (!isSettled) {
+            isSettled = true;
+            clearTimeout(timer);
+            resolve(this.executeInMemoryTransaction(storeName, mode, callback));
+          }
+        }
+      } catch (txErr) {
+        if (!isSettled) {
+          isSettled = true;
+          clearTimeout(timer);
+          resolve(this.executeInMemoryTransaction(storeName, mode, callback));
+        }
       }
     });
+  }
+
+  // # Function: In-Memory transactional mock simulator
+  executeInMemoryTransaction(storeName, mode, callback) {
+    const memStore = this.inMemoryStore[storeName] || [];
+    const mockStore = {
+      put: (item) => {
+        if (Array.isArray(memStore)) {
+          memStore.push(item);
+        } else {
+          memStore[item.candidateId || Date.now()] = item;
+        }
+        return { result: item };
+      },
+      add: (item) => {
+        const id = Date.now() + Math.floor(Math.random() * 1000);
+        const copy = { ...item, id, queueId: id };
+        if (Array.isArray(memStore)) {
+          memStore.push(copy);
+        } else {
+          memStore[id] = copy;
+        }
+        return { result: id };
+      },
+      get: (key) => {
+        let res = null;
+        if (Array.isArray(memStore)) {
+          res = memStore.find((x) => x.id === key || x.candidateId === key || x.queueId === key);
+        } else {
+          res = memStore[key];
+        }
+        return { result: res || null };
+      },
+      getAll: () => ({ result: Array.isArray(memStore) ? [...memStore] : Object.values(memStore) }),
+      index: () => ({
+        getAll: () => ({ result: Array.isArray(memStore) ? [...memStore] : Object.values(memStore) })
+      }),
+      clear: () => {
+        if (Array.isArray(memStore)) memStore.length = 0;
+        else this.inMemoryStore[storeName] = {};
+        return { result: undefined };
+      }
+    };
+
+    try {
+      return callback(mockStore);
+    } catch (e) {
+      return null;
+    }
   }
 
   // ==========================================

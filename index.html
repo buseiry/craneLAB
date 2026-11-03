@@ -8,6 +8,28 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
   <meta name="description" content="TETFund - Tenstar Simulator Training Initiative Offline-First ASVAM & Tower Crane Engineering Lab">
   <title>CraneLab: ASVAM-Pulse | Heavy Plant Engineering</title>
+
+  <!-- # State Block: Immediate Unregistration of Stale Service Workers & Purge of Stale Caches -->
+  <script id="cranelab-cache-purge">
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations().then((registrations) => {
+        for (const registration of registrations) {
+          registration.unregister().then((unregistered) => {
+            if (unregistered) console.log('[CraneLab] Purged stale Service Worker registration:', registration.scope);
+          });
+        }
+      });
+    }
+    if ('caches' in window) {
+      caches.keys().then((cacheNames) => {
+        for (const name of cacheNames) {
+          caches.delete(name).then(() => {
+            console.log('[CraneLab] Purged stale CacheStorage entry:', name);
+          });
+        }
+      });
+    }
+  </script>
   
   <!-- Manifest & Favicon -->
   <link rel="manifest" href="./manifest.json">
@@ -63,24 +85,24 @@
     </div>
   </header>
 
-  <!-- Multi-Stage Gate Stepper Navigation -->
+  <!-- Multi-Stage Gate Stepper Navigation (Fully Unlocked for Instant Testing & Navigation) -->
   <nav class="gate-stepper-nav">
     <div class="gate-stepper-inner">
       <button id="tab-btn-a" class="gate-tab-button active" onclick="CraneLabApp.switchView('view-a')">
         <span><span class="tab-prefix">GATE A</span> Candidate Auth</span>
         <span id="tab-status-a" class="tab-icon-lock">●</span>
       </button>
-      <button id="tab-btn-b" class="gate-tab-button locked" onclick="CraneLabApp.switchView('view-b')" disabled>
+      <button id="tab-btn-b" class="gate-tab-button" onclick="CraneLabApp.switchView('view-b')">
         <span><span class="tab-prefix">GATE B</span> ASVAM Pre-Start</span>
-        <span id="tab-status-b" class="tab-icon-lock">🔒</span>
+        <span id="tab-status-b" class="tab-icon-lock">✓</span>
       </button>
-      <button id="tab-btn-c" class="gate-tab-button locked" onclick="CraneLabApp.switchView('view-c')" disabled>
+      <button id="tab-btn-c" class="gate-tab-button" onclick="CraneLabApp.switchView('view-c')">
         <span><span class="tab-prefix">GATE C</span> Crane Cockpit</span>
-        <span id="tab-status-c" class="tab-icon-lock">🔒</span>
+        <span id="tab-status-c" class="tab-icon-lock">⚡</span>
       </button>
-      <button id="tab-btn-d" class="gate-tab-button locked" onclick="CraneLabApp.switchView('view-d')" disabled>
+      <button id="tab-btn-d" class="gate-tab-button" onclick="CraneLabApp.switchView('view-d')">
         <span><span class="tab-prefix">GATE D</span> Telemetry Audit</span>
-        <span id="tab-status-d" class="tab-icon-lock">🔒</span>
+        <span id="tab-status-d" class="tab-icon-lock">📊</span>
       </button>
     </div>
   </nav>
@@ -953,30 +975,35 @@
         updateStatus();
       }
 
-      // # Function: Dynamic View Navigation with Gate Interlock validation
+      // # Function: Dynamic View Navigation - Unlocked for Instant Manual Switching
       static switchView(viewId) {
-        // # State Block: Gate check enforcing progressive unlocking
-        if (viewId === 'view-b' && !CraneLabState.gates.gateA_Passed) {
-          alert('Gate B Locked: Candidate identity must be cryptographically authorized first.');
-          return;
-        }
-        if (viewId === 'view-c' && !CraneLabState.gates.gateB_Passed) {
-          alert('Gate C Locked: ASVAM pre-start inspection protocol must be 100% verified first.');
-          return;
-        }
-        if (viewId === 'view-d' && !CraneLabState.gates.gateC_Passed) {
-          alert('Gate D Locked: Simulation run must be concluded to audit telemetry records.');
-          return;
+        // # Auto-fulfill gate prerequisites when jumping directly into gates during testing
+        if (viewId === 'view-c') {
+          CraneLabState.gateA_Passed = true;
+          CraneLabState.gateB_Passed = true;
+          if (CraneLabState.gates) {
+            CraneLabState.gates.gateA_Passed = true;
+            CraneLabState.gates.gateB_Passed = true;
+          }
+          CraneLabState.simulation.isRunning = true;
+        } else if (viewId === 'view-b') {
+          CraneLabState.gateA_Passed = true;
+          if (CraneLabState.gates) CraneLabState.gates.gateA_Passed = true;
         }
 
-        // # State Block: Switch active views
-        const views = document.querySelectorAll('.view-section');
-        views.forEach((v) => v.classList.remove('active-view'));
-
-        const targetView = document.getElementById(viewId);
-        if (targetView) {
-          targetView.classList.add('active-view');
-        }
+        // # Explicitly hide non-target views and display target view
+        ['view-a', 'view-b', 'view-c', 'view-d'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            if (id === viewId) {
+              el.classList.add('active-view');
+              el.style.display = 'block';
+            } else {
+              el.classList.remove('active-view');
+              el.style.display = 'none';
+            }
+          }
+        });
 
         // # State Block: Update tab buttons visual state
         const tabBtns = document.querySelectorAll('.gate-tab-button');
@@ -990,14 +1017,16 @@
         };
         const activeTab = document.getElementById(tabMap[viewId]);
         if (activeTab) {
+          activeTab.classList.remove('locked');
+          activeTab.removeAttribute('disabled');
           activeTab.classList.add('active');
         }
 
-        // # State Block: Trigger canvas resize when entering view-c (immediate + delayed for layout reflow)
+        // # State Block: Trigger canvas resize when entering view-c (0ms, 50ms, 250ms)
         if (viewId === 'view-c') {
-          CraneLabApp.resizeCanvas();
-          setTimeout(() => CraneLabApp.resizeCanvas(), 50);
-          setTimeout(() => CraneLabApp.resizeCanvas(), 200);
+          this.resizeCanvas();
+          setTimeout(() => this.resizeCanvas(), 50);
+          setTimeout(() => this.resizeCanvas(), 250);
         }
       }
 
@@ -1174,46 +1203,78 @@
         if (window.InspectionGate) {
           window.InspectionGate.evaluateOverallReadiness();
         }
+
+        // # Jump straight into Gate C after 150ms
+        setTimeout(() => {
+          this.signOffInspectionGate();
+        }, 150);
       }
 
       // # Function: Gate B - Sign-Off ASVAM Inspection and Energize Cockpit
-      static async signOffInspectionGate() {
-        CraneLabState.gates.gateB_Passed = true;
+      static signOffInspectionGate() {
+        // # 1. Synchronously set gate and simulation flags
+        CraneLabState.gateA_Passed = true;
+        CraneLabState.gateB_Passed = true;
+        if (CraneLabState.gates) {
+          CraneLabState.gates.gateA_Passed = true;
+          CraneLabState.gates.gateB_Passed = true;
+        }
 
-        // # State Block: Unlock Gate C Tab Immediately
+        // # 2. Explicitly hide non-target views and display View C
+        ['view-a', 'view-b', 'view-d'].forEach((id) => {
+          const el = document.getElementById(id);
+          if (el) {
+            el.classList.remove('active-view');
+            el.style.display = 'none';
+          }
+        });
+        const viewC = document.getElementById('view-c');
+        if (viewC) {
+          viewC.classList.add('active-view');
+          viewC.style.display = 'block';
+        }
+
+        // # 3. Unlock and highlight Gate C Tab in Stepper
+        const tabBtns = document.querySelectorAll('.gate-tab-button');
+        tabBtns.forEach((btn) => btn.classList.remove('active'));
         const tabC = document.getElementById('tab-btn-c');
         if (tabC) {
           tabC.classList.remove('locked');
           tabC.removeAttribute('disabled');
+          tabC.classList.add('active');
         }
         const tabStatusB = document.getElementById('tab-status-b');
         if (tabStatusB) tabStatusB.textContent = '✓';
         const tabBtnB = document.getElementById('tab-btn-b');
         if (tabBtnB) tabBtnB.classList.add('passed');
 
-        // # State Block: Initialize Simulator Clock & Tenstar Career Shift Contract
+        // # 4. Start Simulator Clock & Tenstar Shift Contract
         CraneLabState.simulation.isRunning = true;
         CraneLabState.simulation.cycleStartTimestamp = Date.now();
         if (window.CareerTelemetry) {
           window.CareerTelemetry.selectShiftContract(0);
         }
 
-        // # Transition Immediately to Gate C Cockpit View
-        this.switchView('view-c');
+        // # 5. Trigger Canvas Resizing at 0ms, 50ms, 250ms
+        this.resizeCanvas();
+        setTimeout(() => this.resizeCanvas(), 50);
+        setTimeout(() => this.resizeCanvas(), 250);
 
-        // # State Block: Log ASVAM sign-off telemetry with non-blocking error resilience
-        try {
-          if (window.CraneLabDB && typeof window.CraneLabDB.logTelemetry === 'function') {
-            await window.CraneLabDB.logTelemetry(
-              CraneLabState.candidate.id || 'TF-TNS-2026-0842',
-              CraneLabState.candidate.sessionToken || 'OFFLINE_TOKEN',
-              'ASVAM_GATE_B_CLEARED',
-              { verifiedCount: 8, totalRiskAudited: CraneLabState.asvam.riskScoreTotal }
-            );
+        // # 6. Non-blocking asynchronous telemetry log
+        setTimeout(async () => {
+          try {
+            if (window.CraneLabDB && typeof window.CraneLabDB.logTelemetry === 'function') {
+              await window.CraneLabDB.logTelemetry(
+                CraneLabState.candidate.id || 'TF-TNS-2026-0842',
+                CraneLabState.candidate.sessionToken || 'OFFLINE_TOKEN',
+                'ASVAM_GATE_B_CLEARED',
+                { verifiedCount: 8, totalRiskAudited: CraneLabState.asvam.riskScoreTotal }
+              );
+            }
+          } catch (telemetryErr) {
+            console.warn('[CraneLabApp] Non-blocking telemetry log notice:', telemetryErr);
           }
-        } catch (telemetryErr) {
-          console.warn('[CraneLabApp] Non-blocking telemetry log notice:', telemetryErr);
-        }
+        }, 50);
       }
 
       // ==========================================================

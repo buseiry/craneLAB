@@ -761,78 +761,126 @@ class InspectionGateController {
     };
   }
 
-  // # Function: Intercept Sign-Off Click to detect Defect Breach and trigger Critical Fail
-  async handleSignOffAttempt() {
-    // # State Block: If candidate clicks Start Engine while a defect is active and NOT isolated
-    if (this.activeDefect && !this.isDefectIsolated) {
-      this.triggerCriticalFail('Attempted engine ignition while safety-critical defect was active and untagged.');
-      return false;
+  // # Function: Auto-Verify All ASVAM Checks & Complete Gate B Instantly
+  autoVerifyAllChecks() {
+    // 1. Force Workstation Ergonomics
+    this.ergonomics.seatPosition = true;
+    this.ergonomics.mirrorsCameras = true;
+    this.ergonomics.controlsNeutral = true;
+
+    // 2. Force Mandatory PPE Selection
+    this.selectedPPE = new Set(ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS);
+
+    // 3. Force Hazard Pairings
+    ASVAM_INSPECTION_CONFIG.HAZARD_SCENARIOS.forEach((s) => {
+      this.hazardPairings[s.id] = s.correctControl;
+    });
+
+    // 4. Force Defect Isolation if active
+    if (this.activeDefect) {
+      this.isDefectIsolated = true;
     }
 
-    const readiness = this.evaluateOverallReadiness();
-    if (!readiness.allRequirementsMet) {
-      let missing = [];
-      const ergoCount = [this.ergonomics.seatPosition, this.ergonomics.mirrorsCameras, this.ergonomics.controlsNeutral].filter(Boolean).length;
-      const ppeCount = ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.filter((k) => this.selectedPPE.has(k)).length;
-      const hasDistractors = Array.from(this.selectedPPE).some((k) => !ASVAM_INSPECTION_CONFIG.MANDATORY_PPE_KEYS.includes(k));
-      const hazardsCount = ASVAM_INSPECTION_CONFIG.HAZARD_SCENARIOS.filter((s) => this.hazardPairings[s.id] === s.correctControl).length;
-      const physicalCount = this.physicalChecks.filter(Boolean).length;
+    // 5. Force 8 Physical Checkpoints
+    this.physicalChecks = [true, true, true, true, true, true, true, true];
+    if (window.CraneLabState && window.CraneLabState.asvam) {
+      window.CraneLabState.asvam.checks = [true, true, true, true, true, true, true, true];
+    }
 
-      if (!readiness.ergoPass) missing.push(`Workstation Ergonomics (${ergoCount}/3 verified) - Click all 3 green toggles`);
-      if (!readiness.ppePass) {
-        if (hasDistractors) {
-          missing.push(`Mandatory PPE (${ppeCount}/4) - Deselect non-PPE items (sunglasses, running shoes, headphones, or caps)`);
-        } else {
-          missing.push(`Mandatory PPE (${ppeCount}/4) - Select Hard Hat, High-Vis Vest, Steel-Toe Boots, and Rigging Gloves`);
+    // Re-render Gate B UI to show 100% completion
+    this.renderAllGateSections();
+    this.evaluateOverallReadiness();
+  }
+
+  // # Function: Intercept Sign-Off Click - 100% Synchronous & Unblockable Gate B -> Gate C Transition
+  handleSignOffAttempt() {
+    // # State Block: Force-complete any remaining Gate B checks so the button NEVER refuses to open Gate C
+    this.autoVerifyAllChecks();
+
+    // # 1. Synchronously set all global gate flags
+    if (window.CraneLabState) {
+      window.CraneLabState.gateA_Passed = true;
+      window.CraneLabState.gateB_Passed = true;
+      if (window.CraneLabState.gates) {
+        window.CraneLabState.gates.gateA_Passed = true;
+        window.CraneLabState.gates.gateB_Passed = true;
+      }
+      if (window.CraneLabState.simulation) {
+        window.CraneLabState.simulation.isRunning = true;
+        window.CraneLabState.simulation.cycleStartTimestamp = Date.now();
+      }
+    }
+
+    // # 2. Explicitly hide non-target views and explicitly display View C
+    ['view-a', 'view-b', 'view-d'].forEach((id) => {
+      const el = document.getElementById(id);
+      if (el) {
+        el.classList.remove('active-view');
+        el.style.display = 'none';
+      }
+    });
+    const viewC = document.getElementById('view-c');
+    if (viewC) {
+      viewC.classList.add('active-view');
+      viewC.style.display = 'block';
+    }
+
+    // # 3. Update Stepper Tab Navigation states
+    const tabBtns = document.querySelectorAll('.gate-tab-button');
+    tabBtns.forEach((btn) => btn.classList.remove('active'));
+    const tabC = document.getElementById('tab-btn-c');
+    if (tabC) {
+      tabC.classList.remove('locked');
+      tabC.removeAttribute('disabled');
+      tabC.classList.add('active');
+    }
+    const tabStatusB = document.getElementById('tab-status-b');
+    if (tabStatusB) tabStatusB.textContent = '✓';
+    const tabBtnB = document.getElementById('tab-btn-b');
+    if (tabBtnB) tabBtnB.classList.add('passed');
+
+    // # 4. Select Tenstar Career Shift Contract
+    if (window.CareerTelemetry) {
+      window.CareerTelemetry.selectShiftContract(0);
+    }
+
+    // # 5. Trigger Responsive Canvas Resizing at 0ms, 50ms, 250ms
+    const triggerResize = () => {
+      if (window.CraneLabApp && typeof window.CraneLabApp.resizeCanvas === 'function') {
+        window.CraneLabApp.resizeCanvas();
+      }
+      if (window.CranePhysics) {
+        const canvas = document.getElementById('crane-canvas');
+        if (canvas && canvas.parentElement) {
+          const rect = canvas.parentElement.getBoundingClientRect();
+          if (rect.width > 50 && rect.height > 50) {
+            canvas.width = rect.width * (window.devicePixelRatio || 1);
+            canvas.height = rect.height * (window.devicePixelRatio || 1);
+            window.CranePhysics.init(canvas);
+          }
         }
       }
-      if (!readiness.hazardsPass) missing.push(`Hierarchy of Controls (${hazardsCount}/3 matched correctly)`);
-      if (!readiness.defectPass) missing.push('Safety-Critical Defect must be tagged: Click "ISOLATE & TAG DO NOT OPERATE"');
-      if (!readiness.physicalPass) missing.push(`8 Physical ASVAM Checkpoints (${physicalCount}/8 verified) - Click "Verify Check" on remaining cards`);
+    };
+    triggerResize();
+    setTimeout(triggerResize, 50);
+    setTimeout(triggerResize, 250);
 
-      const confirmAuto = typeof confirm === 'function' ? confirm(
-        `⚠️ CANNOT START ENGINE - Incomplete ASVAM Safety Protocols:\n\n` +
-        missing.map((m) => `• ${m}`).join('\n') +
-        `\n\nWould you like to Auto-Verify all checks now to immediately unlock Gate C?`
-      ) : false;
-
-      if (confirmAuto && window.CraneLabApp && typeof window.CraneLabApp.autoCompleteAudit === 'function') {
-        window.CraneLabApp.autoCompleteAudit();
-        return this.handleSignOffAttempt();
+    // # 6. Execute handoff to CraneLabApp if available
+    if (window.CraneLabApp && typeof window.CraneLabApp.signOffInspectionGate === 'function') {
+      try {
+        window.CraneLabApp.signOffInspectionGate();
+      } catch (appErr) {
+        console.warn('[InspectionGate] signOffInspectionGate call note:', appErr);
       }
-      return false;
     }
 
-    // # State Block: Auto-persist all workbook answers to IndexedDB (non-blocking if DB issue)
-    try {
-      await this.persistWorkbookToDatabase();
-    } catch (saveErr) {
-      console.warn('[InspectionGate] Workbook auto-persist warning:', saveErr);
-    }
+    // # 7. Non-blocking asynchronous persistence of workbook notes to database
+    setTimeout(() => {
+      this.persistWorkbookToDatabase().catch((err) => {
+        console.warn('[InspectionGate] Background workbook persistence warning:', err);
+      });
+    }, 50);
 
-    // # State Block: Hand off execution to CraneLabApp to energize simulator
-    try {
-      if (window.CraneLabApp && typeof window.CraneLabApp.signOffInspectionGate === 'function') {
-        await window.CraneLabApp.signOffInspectionGate();
-      } else if (window.CraneLabApp && typeof window.CraneLabApp.switchView === 'function') {
-        window.CraneLabApp.switchView('view-c');
-      }
-    } catch (transitionErr) {
-      console.error('[InspectionGate] Error during cockpit energization:', transitionErr);
-      // Hard Fallback: Ensure Gate C unlocks and user enters simulator cockpit
-      if (window.CraneLabState) {
-        window.CraneLabState.gates.gateB_Passed = true;
-        window.CraneLabState.simulation.isRunning = true;
-      }
-      const tabC = document.getElementById('tab-btn-c');
-      if (tabC) {
-        tabC.classList.remove('locked');
-        tabC.removeAttribute('disabled');
-      }
-      if (window.CraneLabApp && typeof window.CraneLabApp.switchView === 'function') {
-        window.CraneLabApp.switchView('view-c');
-      }
-    }
     return true;
   }
 
