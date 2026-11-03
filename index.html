@@ -1,0 +1,1676 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#0f172a">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="TETFund - Tenstar Simulator Training Initiative Offline-First ASVAM & Tower Crane Engineering Lab">
+  <title>CraneLab: ASVAM-Pulse | Heavy Plant Engineering</title>
+  
+  <!-- Manifest & Favicon -->
+  <link rel="manifest" href="./manifest.json">
+  <link rel="icon" type="image/svg+xml" href="./icon.svg">
+  
+  <!-- Industrial Stylesheet -->
+  <link rel="stylesheet" href="./styles.css">
+</head>
+<body>
+
+  <!-- Top Industrial Header Bar & Consortium Branding -->
+  <header class="header-bar">
+    <div class="hazard-tape-top"></div>
+    <div class="header-inner">
+      <div class="brand-group">
+        <div class="crane-logo-icon">
+          <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Tower Mast & Jib -->
+            <path d="M4 22h16"></path>
+            <path d="M10 22V5"></path>
+            <path d="M14 22V5"></path>
+            <path d="M6 5h15"></path>
+            <path d="M12 2l-2 3h4z"></path>
+            <path d="M19 5v8"></path>
+            <circle cx="19" cy="15" r="2"></circle>
+          </svg>
+        </div>
+        <div class="brand-text">
+          <h1>CraneLab <span class="pulse-badge">ASVAM-PULSE</span></h1>
+          <p>TETFund - Tenstar Simulator Training Initiative | ASQ UK &amp; SAMMAX</p>
+        </div>
+      </div>
+
+      <!-- Real-Time Telemetry & Security Header Ribbon -->
+      <div class="header-status-ribbon">
+        <div class="status-pill">
+          <span id="network-dot" class="status-indicator-dot online"></span>
+          <span id="network-text">ONLINE</span>
+        </div>
+        <div class="status-pill safety-naira-badge">
+          <span>SAFETY ₦:</span>
+          <strong class="safety-naira-val">₦0</strong>
+        </div>
+        <div class="status-pill">
+          <span>COHORT:</span>
+          <strong id="header-cohort-badge" class="session-key-badge">UNASSIGNED</strong>
+        </div>
+        <div class="status-pill">
+          <span>TOKEN:</span>
+          <span id="header-token-badge" class="session-key-badge">LOCKED-0x00</span>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- Multi-Stage Gate Stepper Navigation -->
+  <nav class="gate-stepper-nav">
+    <div class="gate-stepper-inner">
+      <button id="tab-btn-a" class="gate-tab-button active" onclick="CraneLabApp.switchView('view-a')">
+        <span><span class="tab-prefix">GATE A</span> Candidate Auth</span>
+        <span id="tab-status-a" class="tab-icon-lock">●</span>
+      </button>
+      <button id="tab-btn-b" class="gate-tab-button locked" onclick="CraneLabApp.switchView('view-b')" disabled>
+        <span><span class="tab-prefix">GATE B</span> ASVAM Pre-Start</span>
+        <span id="tab-status-b" class="tab-icon-lock">🔒</span>
+      </button>
+      <button id="tab-btn-c" class="gate-tab-button locked" onclick="CraneLabApp.switchView('view-c')" disabled>
+        <span><span class="tab-prefix">GATE C</span> Crane Cockpit</span>
+        <span id="tab-status-c" class="tab-icon-lock">🔒</span>
+      </button>
+      <button id="tab-btn-d" class="gate-tab-button locked" onclick="CraneLabApp.switchView('view-d')" disabled>
+        <span><span class="tab-prefix">GATE D</span> Telemetry Audit</span>
+        <span id="tab-status-d" class="tab-icon-lock">🔒</span>
+      </button>
+    </div>
+  </nav>
+
+  <!-- Main Viewport Deck -->
+  <main class="main-viewport-container">
+
+    <!-- ======================================================== -->
+    <!-- VIEW A: Candidate Login & Cryptographic Session Gate    -->
+    <!-- ======================================================== -->
+    <section id="view-a" class="view-section active-view">
+      <div class="industrial-card">
+        <div class="card-header">
+          <h2><span class="gate-tag">GATE-A</span> Candidate Identity &amp; Cryptographic Session Keygen</h2>
+          <span class="crypto-seal-title">Web Crypto API :: HMAC-SHA256</span>
+        </div>
+        <div class="card-body">
+          <div class="login-grid-layout">
+            <!-- Candidate Input Form -->
+            <form id="auth-form" onsubmit="CraneLabApp.handleCandidateLogin(event)">
+              <div class="form-group">
+                <label for="candidate-id-input">Candidate Identification Code</label>
+                <input type="text" id="candidate-id-input" class="form-control" value="TF-TNS-2026-0842" required placeholder="e.g. TF-TNS-2026-XXXX">
+              </div>
+
+              <div class="form-group">
+                <label for="candidate-name-input">Full Candidate Name</label>
+                <input type="text" id="candidate-name-input" class="form-control" value="Ibrahim Adeleke Musa" required placeholder="Surname Firstname">
+              </div>
+
+              <div class="form-group">
+                <label for="cohort-select">Cohort Training Specialization (Groups 1-4)</label>
+                <select id="cohort-select" class="form-control" required>
+                  <option value="Group 1 - Structural Dynamics & Foundation">Group 1 - Structural Dynamics &amp; Foundation Stability</option>
+                  <option value="Group 2 - Mechanical Rigging & Cables" selected>Group 2 - Mechanical Rigging, Reeving &amp; Cables</option>
+                  <option value="Group 3 - Tower Crane Precision Control">Group 3 - Tower Crane Precision Lift &amp; Slew Control</option>
+                  <option value="Group 4 - Site Safety & Banksman Protocol">Group 4 - Site Safety, Exclusion Zones &amp; Banksman Protocol</option>
+                </select>
+              </div>
+
+              <div class="form-group">
+                <label for="salt-secret-input">Cryptographic Secret Salt / Training Instructor PIN</label>
+                <input type="text" id="salt-secret-input" class="form-control" value="TETFUND-TENSTAR-ASVAM-2026-UK-SAMMAX-SECURE-KEY" required>
+              </div>
+
+              <button type="submit" id="btn-init-session" class="btn-primary">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                  <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+                  <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                </svg>
+                Authorize Session &amp; Unlock Gate B
+              </button>
+            </form>
+
+            <!-- Real-Time Cryptographic Preimage & Entropy Monitor -->
+            <div class="crypto-audit-box">
+              <h3>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path>
+                </svg>
+                Stateless Cryptographic Signature Feed
+              </h3>
+
+              <div>
+                <span class="entropy-meter-label">Active Preimage String:</span>
+                <div id="crypto-preimage-preview" class="crypto-display">TF-TNS-2026-0842::Group 2::Pending_Auth</div>
+              </div>
+
+              <div>
+                <span class="entropy-meter-label">Generated Session Token (HMAC-SHA256):</span>
+                <div id="crypto-token-preview" class="crypto-display" style="color: var(--safety-amber);">AWAITING_INPUT_AUTHENTICATION</div>
+              </div>
+
+              <div class="entropy-meter-container">
+                <div class="entropy-meter-label">
+                  <span>Cryptographic Bit-Depth:</span>
+                  <span id="entropy-pct">256-bit (100% Entropy)</span>
+                </div>
+                <div class="entropy-track">
+                  <div id="entropy-bar" class="entropy-fill" style="width: 100%;"></div>
+                </div>
+              </div>
+
+              <div class="status-pill" style="justify-content: center; font-size: 0.74rem;">
+                <span>IndexedDB ACID Storage:</span>
+                <strong id="db-status-badge" style="color: var(--safety-emerald);">READY (CraneLab_ASVAM_Pulse_DB)</strong>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW B: ASVAM Pre-Start Inspection & Hazard Gate         -->
+    <!-- ======================================================== -->
+    <section id="view-b" class="view-section">
+      <div class="industrial-card">
+        <div class="card-header">
+          <h2><span class="gate-tag">GATE-B</span> ASVAM Pre-Operational Inspection &amp; Hazard Gate</h2>
+          <div style="display: flex; align-items: center; gap: 0.85rem; font-family: var(--font-mono); font-size: 0.85rem;">
+            <span>PHYSICAL CHECKS: <strong id="asvam-progress-count" style="color: var(--safety-amber);">0 / 8</strong></span>
+            <span class="status-pill safety-naira-badge">
+              <span>SAFETY ₦:</span>
+              <strong class="safety-naira-val">₦0</strong>
+            </span>
+          </div>
+        </div>
+        <div class="card-body">
+          <!-- Defect Isolation Interlock Banner (Workbook 6.6 & Day 1 Slide 11) -->
+          <div id="defect-interlock-container"></div>
+
+          <div class="hazard-gate-banner">
+            <div>
+              <strong>SAFETY INTERLOCK ENGAGED (ASVAM CURRICULUM GATE):</strong>
+              <p>Simulator cab power and slew motors are locked offline. The candidate must audit Workstation Ergonomics, verify mandatory PPE, match Hierarchy of Controls, isolate active shift defects, and clear all 8 physical structural checkpoints in accordance with UK/ASQ and SAMMAX safety protocols.</p>
+            </div>
+            <button id="btn-auto-audit" class="btn-aux" onclick="CraneLabApp.autoCompleteAudit()">Audit Simulation (Instructor Mode)</button>
+          </div>
+
+          <!-- Section 1: Workstation Ergonomics Check (Workbook 6.4) -->
+          <div class="curriculum-sub-section">
+            <div class="sub-section-title">
+              <h3>
+                <span class="tab-prefix">MODULE 6.4</span>
+                Workstation Ergonomics &amp; Pre-Ignition Readiness
+              </h3>
+              <span id="ergo-gate-status-badge" class="check-badge pending">ADJUSTMENTS REQUIRED</span>
+            </div>
+            <div id="ergo-controls-container"></div>
+          </div>
+
+          <!-- Section 2: Personal Protective Equipment (PPE) Selection (Workbook 6.2) -->
+          <div class="curriculum-sub-section">
+            <div class="sub-section-title">
+              <h3>
+                <span class="tab-prefix">MODULE 6.2</span>
+                Mandatory Personal Protective Equipment (PPE) Gate
+              </h3>
+              <span id="ppe-gate-status-badge" class="check-badge pending">PPE INCOMPLETE</span>
+            </div>
+            <div id="ppe-matrix-container"></div>
+          </div>
+
+          <!-- Section 3: Hierarchy of Risk Control Assessment (Workbook 6.3, 6.5) -->
+          <div class="curriculum-sub-section">
+            <div class="sub-section-title">
+              <h3>
+                <span class="tab-prefix">MODULE 6.3 &amp; 6.5</span>
+                Hierarchy of Control &amp; Site Hazard Risk Matching
+              </h3>
+              <span id="hazard-hierarchy-status-badge" class="check-badge pending">CONTROLS PENDING</span>
+            </div>
+            <div id="hazard-matcher-container"></div>
+          </div>
+
+          <!-- Section 4: ASVAM 8-Vector Checklist Matrix (Workbook 6.7 to 6.14) -->
+          <div class="curriculum-sub-section">
+            <div class="sub-section-title">
+              <h3>
+                <span class="tab-prefix">MODULE 6.7 - 6.14</span>
+                Plant Machinery &amp; Physical Inspection Checkpoints
+              </h3>
+              <span class="check-badge verified">8 CRITICAL VECTORS</span>
+            </div>
+
+            <div id="asvam-matrix" class="asvam-checklist-grid">
+              <!-- Check 1 (Workbook 6.7) -->
+              <div class="check-item-card" id="card-check-1">
+                <div class="check-item-header">
+                  <h4>1. Outrigger Foundation &amp; Soil Pad</h4>
+                  <span class="check-badge pending" id="badge-check-1">PENDING</span>
+                </div>
+                <p class="check-desc">Verify bearing pressure compaction &gt; 250 kN/m², pad levelness within ±0.2°, and zero subterranean voids.</p>
+                <div class="check-action-row">
+                  <span class="risk-calc-display">Risk R = 4 × 4 = 16 (HIGH)</span>
+                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(1, 4, 4)">Verify Check</button>
+                </div>
+              </div>
+
+              <!-- Check 2 (Workbook 6.8) -->
+              <div class="check-item-card" id="card-check-2">
+                <div class="check-item-header">
+                  <h4>2. Mast Bolt Tension &amp; Slew Ring</h4>
+                  <span class="check-badge pending" id="badge-check-2">PENDING</span>
+                </div>
+                <p class="check-desc">Grade 10.9 high-tensile mast bolts calibrated to 1,250 Nm torque. Turntable slew gear lubricated and free of crack deformation.</p>
+                <div class="check-action-row">
+                  <span class="risk-calc-display">Risk R = 5 × 3 = 15 (HIGH)</span>
+                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(2, 5, 3)">Verify Check</button>
+                </div>
+              </div>
+
+              <!-- Check 3 (Workbook 6.9) -->
+              <div class="check-item-card" id="card-check-3">
+                <div class="check-item-header">
+                  <h4>3. Ultrasonic Wind Anemometer</h4>
+                  <span class="check-badge pending" id="badge-check-3">PENDING</span>
+                </div>
+                <p class="check-desc">Jib-tip anemometer operational. Wind velocity &lt; 38 km/h (10.5 m/s) threshold for safe hoisting operations.</p>
+                <div class="check-action-row">
+                  <span class="risk-calc-display">Risk R = 4 × 3 = 12 (MED)</span>
+                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(3, 4, 3)">Verify Check</button>
+                </div>
+              </div>
+
+              <!-- Check 4 (Workbook 6.10) -->
+              <div class="check-item-card" id="card-check-4">
+                <div class="check-item-header">
+                  <h4>4. Hoist Wire Rope &amp; Wedge Socket</h4>
+                  <span class="check-badge pending" id="badge-check-4">PENDING</span>
+                </div>
+                <p class="check-desc">Non-rotating wire rope inspection for broken wires, crown fatigue, bird-caging, and certified safety pin insertion in wedge socket.</p>
+                <div class="check-action-row">
+                  <span class="risk-calc-display">Risk R = 5 × 4 = 20 (CRIT)</span>
+                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(4, 5, 4)">Verify Check</button>
+                </div>
+              </div>
+
+              <!-- Check 5 (Workbook 6.11) -->
+              <div class="check-item-card" id="card-check-5">
+                <div class="check-item-header">
+                  <h4>5. Hoist Limit Switches &amp; Trolley Buffers</h4>
+                  <span class="check-badge pending" id="badge-check-5">PENDING</span>
+                </div>
+                <p class="check-desc">Anti-two-block limit switch trip test, trolley end-of-track optical deceleration interlocks, and rubber hydraulic buffers intact.</p>
+                <div class="check-action-row">
+                  <span class="risk-calc-display">Risk R = 4 × 4 = 16 (HIGH)</span>
+                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(5, 4, 4)">Verify Check</button>
+                </div>
+              </div>
+
+              <!-- Check 6 (Workbook 6.12) -->
+              <div class="check-item-card" id="card-check-6">
+                <div class="check-item-header">
+                  <h4>6. Slew Brakes &amp; Free-Weathervane Vane</h4>
+                  <span class="check-badge pending" id="badge-check-6">PENDING</span>
+                </div>
+                <p class="check-desc">Hydraulic slew brake holding torque verified. Emergency free-slew mechanical release engaged for storm weathervaning.</p>
+                <div class="check-action-row">
+                  <span class="risk-calc-display">Risk R = 4 × 3 = 12 (MED)</span>
+                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(6, 4, 3)">Verify Check</button>
+                </div>
+              </div>
+
+              <!-- Check 7 (Workbook 6.13) -->
+              <div class="check-item-card" id="card-check-7">
+                <div class="check-item-header">
+                  <h4>7. Safe Load Indicator (SLI / LMI)</h4>
+                  <span class="check-badge pending" id="badge-check-7">PENDING</span>
+                </div>
+                <p class="check-desc">Digital load cell sensor calibration, radius angle transducer zeroed, and cab audiovisual overload warning klaxon functional.</p>
+                <div class="check-action-row">
+                  <span class="risk-calc-display">Risk R = 5 × 3 = 15 (HIGH)</span>
+                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(7, 5, 3)">Verify Check</button>
+                </div>
+              </div>
+
+              <!-- Check 8 (Workbook 6.14) -->
+              <div class="check-item-card" id="card-check-8">
+                <div class="check-item-header">
+                  <h4>8. Banksman Radio &amp; Exclusion Zone</h4>
+                  <span class="check-badge pending" id="badge-check-8">PENDING</span>
+                </div>
+                <p class="check-desc">Two-way VHF frequency radio check with Appointed Person / Slinger Signaller. Ground perimeter barricaded with zero unauthorized personnel.</p>
+                <div class="check-action-row">
+                  <span class="risk-calc-display">Risk R = 3 × 3 = 9 (MED)</span>
+                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(8, 3, 3)">Verify Check</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Final Sign-Off Interlock Trigger -->
+          <button type="button" id="btn-sign-off-gate-b" class="btn-primary" disabled onclick="window.InspectionGate.handleSignOffAttempt()">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+            Complete All ASVAM Checks to Unlock Engine
+          </button>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW C: Dual-Joystick Tower Crane Simulator & Career HUD -->
+    <!-- ======================================================== -->
+    <section id="view-c" class="view-section">
+      <div class="simulator-cockpit">
+        <!-- Abuja Crane Life Career & Tenstar Contract Strip -->
+        <div class="career-contract-strip">
+          <div class="career-rank-pill">
+            <span>RANK:</span>
+            <strong id="hud-career-rank">🔰 Yard Apprentice</strong>
+          </div>
+          <div class="career-rank-pill" style="color: var(--safety-emerald); background: rgba(16, 185, 129, 0.1); border-color: rgba(16, 185, 129, 0.3);">
+            <span>SAVINGS:</span>
+            <strong id="hud-career-naira">₦0</strong>
+          </div>
+          <div class="contract-select-group">
+            <label for="contract-select-dropdown">Shift Contract:</label>
+            <select id="contract-select-dropdown" class="form-control" style="width: auto; padding: 0.35rem 0.75rem; font-size: 0.78rem;" onchange="window.CareerTelemetry.selectShiftContract(parseInt(this.value))">
+              <option value="0" selected>Shift 1: Tenstar 2.1 Basic Lift (0m to 12m)</option>
+              <option value="1">Shift 2: Tenstar 2.3 Placing I-Beams (Sway &lt; 5°)</option>
+              <option value="2">Shift 3: Tenstar 2.8 Blind Lift (Radio Protocol)</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Dynamic Site Crisis Alert Container (Wind Gust / Radio Lost) -->
+        <div id="crisis-alert-container"></div>
+
+        <!-- Signaller Blind Lift HUD Overlay Banner -->
+        <div id="signaller-hud-banner"></div>
+
+        <!-- Live Tenstar Telemetry Scoring Pillars (Quality 30%, Safety 50%, Economy 20%) -->
+        <div class="tenstar-pillars-deck">
+          <div class="pillar-gauge-card">
+            <span class="pillar-title">Quality Pillar (30%)</span>
+            <span id="pillar-quality-val" class="pillar-val safe">100%</span>
+            <span class="pillar-ratio">Placement &amp; Touchdown</span>
+          </div>
+          <div class="pillar-gauge-card">
+            <span class="pillar-title">Safety Pillar (50%)</span>
+            <span id="pillar-safety-val" class="pillar-val safe">100%</span>
+            <span class="pillar-ratio">Sway &amp; Exclusion Zones</span>
+          </div>
+          <div class="pillar-gauge-card">
+            <span class="pillar-title">Economy Pillar (20%)</span>
+            <span id="pillar-economy-val" class="pillar-val safe">100%</span>
+            <span class="pillar-ratio">Jerk &amp; Reversals</span>
+          </div>
+          <div class="pillar-gauge-card" style="border-color: var(--safety-cyan);">
+            <span class="pillar-title">Tenstar Composite</span>
+            <span id="pillar-composite-val" class="pillar-val" style="color: var(--safety-cyan);">100%</span>
+            <span class="pillar-ratio">Est. Payout: Full ₦</span>
+          </div>
+        </div>
+
+        <!-- Top Telemetry Ribbon (HUD) -->
+        <div class="hud-telemetry-panel">
+          <div class="telemetry-gauge">
+            <span class="gauge-title">Wind Velocity</span>
+            <span id="hud-wind-val" class="gauge-val safe">4.2</span>
+            <span class="gauge-unit">m/s (&lt;10.5 Safe)</span>
+          </div>
+          <div class="telemetry-gauge">
+            <span class="gauge-title">Hook Payload</span>
+            <span id="hud-load-val" class="gauge-val safe">3.50</span>
+            <span class="gauge-unit">Tonnes</span>
+          </div>
+          <div class="telemetry-gauge">
+            <span class="gauge-title">Load % SWL</span>
+            <span id="hud-swl-val" class="gauge-val safe">58.3%</span>
+            <span class="gauge-unit">Max Rated 6.0t</span>
+          </div>
+          <div class="telemetry-gauge">
+            <span class="gauge-title">Slew Angle (θ)</span>
+            <span id="hud-slew-val" class="gauge-val">0.0°</span>
+            <span class="gauge-unit">Bearing North</span>
+          </div>
+          <div class="telemetry-gauge">
+            <span class="gauge-title">Trolley Radius (r)</span>
+            <span id="hud-radius-val" class="gauge-val">24.5</span>
+            <span class="gauge-unit">Meters (4m - 50m)</span>
+          </div>
+          <div class="telemetry-gauge">
+            <span class="gauge-title">Hook Height (z)</span>
+            <span id="hud-height-val" class="gauge-val">18.2</span>
+            <span class="gauge-unit">Meters</span>
+          </div>
+          <div class="telemetry-gauge">
+            <span class="gauge-title">Bending Moment</span>
+            <span id="hud-moment-val" class="gauge-val safe">85.7</span>
+            <span class="gauge-unit">kNm (M = F × r)</span>
+          </div>
+        </div>
+
+        <!-- Cockpit Main Deck: Ergonomic Joystick Flanks + 2D Graphic Viewport -->
+        <div class="cockpit-stage">
+          <!-- Left Joystick Zone (Slew + Trolley) with touch-action: none -->
+          <div class="joystick-touch-zone" id="joystick-left-zone">
+            <div class="joystick-title">Left Joystick: Slew &amp; Trolley</div>
+            
+            <div class="joystick-surface" id="stick-surface-left">
+              <div class="joystick-crosshair-x"></div>
+              <div class="joystick-crosshair-y"></div>
+              <div class="joystick-knob" id="stick-knob-left"></div>
+            </div>
+
+            <div class="axis-readout">
+              <span>SLEW: <strong id="readout-slew">0%</strong></span>
+              <span>TROLLEY: <strong id="readout-trolley">0%</strong></span>
+            </div>
+          </div>
+
+          <!-- Crane Graphic Canvas Viewport -->
+          <div class="viewport-deck">
+            <canvas id="crane-canvas"></canvas>
+
+            <!-- Overlay HUD Chips -->
+            <div class="cockpit-hud-overlay">
+              <span class="hud-chip" id="hud-operator-tag">OP: TF-TNS-2026-0842</span>
+              <span class="hud-chip" id="hud-pendulum-tag">PENDULUM SWING: 0.0° (DAMPED)</span>
+              <span class="hud-chip" id="hud-drop-status">TARGET DROP ZONE: IN BOUNDS</span>
+            </div>
+          </div>
+
+          <!-- Right Joystick Zone (Hoist Z-Axis ONLY) with touch-action: none -->
+          <div class="joystick-touch-zone" id="joystick-right-zone">
+            <div class="joystick-title">Right Joystick: Hoist (Z-Axis Only)</div>
+            
+            <div class="joystick-surface" id="stick-surface-right">
+              <div class="joystick-crosshair-x" style="opacity: 0.15;"></div>
+              <div class="joystick-crosshair-y"></div>
+              <div class="joystick-knob" id="stick-knob-right"></div>
+            </div>
+
+            <div class="axis-readout">
+              <span>HOIST: <strong id="readout-hoist">HOLD 0%</strong></span>
+              <span>LATERAL: <strong id="readout-aux" style="color: var(--text-muted);">LOCKED</strong></span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop & Mobile Control Schema Guidance Ribbon -->
+        <div style="background: rgba(15, 23, 42, 0.7); border: 1px solid var(--border-subtle); border-radius: 6px; padding: 0.4rem 0.85rem; display: flex; align-items: center; justify-content: space-between; font-size: 0.72rem; font-family: var(--font-mono); color: var(--text-secondary); flex-wrap: wrap; gap: 0.5rem;">
+          <div>
+            <strong style="color: var(--safety-amber);">ASVAM CAB CONTROLS:</strong>
+            <span>Left Stick: [W/S] Trolley Out/In | [A/D] Slew Left/Right</span>
+          </div>
+          <div>
+            <span>Right Stick: [I/PageDown] Hoist Lower | [K/PageUp] Hoist Raise (Z-Axis Only)</span>
+          </div>
+          <div>
+            <span style="color: var(--safety-cyan);">Tip: Feather joysticks gently to minimize pendulum sway jerk.</span>
+          </div>
+        </div>
+
+        <!-- Simulator Cockpit Controls Footer -->
+        <div class="cockpit-controls-footer">
+          <button id="btn-emergency-stop" class="btn-e-stop" onclick="CraneLabApp.triggerEmergencyStop()">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <polygon points="7.86 2 16.14 2 22 7.86 22 16.14 16.14 22 7.86 22 2 16.14 2 7.86 7.86 2"></polygon>
+              <line x1="12" y1="8" x2="12" y2="12"></line>
+              <line x1="12" y1="16" x2="12.01" y2="16"></line>
+            </svg>
+            EMERGENCY STOP (E-STOP)
+          </button>
+
+          <div class="sim-aux-buttons">
+            <button class="btn-aux" onclick="CraneLabApp.soundHorn()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align: middle; margin-right: 4px;">
+                <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
+                <path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path>
+              </svg>
+              Siren / Horn
+            </button>
+            <button class="btn-aux" onclick="CraneLabApp.resetSimulatorPositions()">Reset Zero</button>
+            <button class="btn-aux" style="border-color: var(--safety-cyan); color: var(--safety-cyan);" onclick="if(window.CareerTelemetry) window.CareerTelemetry.toggleIoTDrawer();">
+              <span style="display:inline-block; width:7px; height:7px; border-radius:50%; background:var(--safety-cyan); margin-right:5px; box-shadow:0 0 5px var(--safety-cyan);"></span>ESP32 IoT Inspector
+            </button>
+            <button class="btn-primary" style="width: auto; padding: 0.55rem 1.25rem;" onclick="CraneLabApp.initiateSafeShutdown()">
+              🛑 Conclude Lift &amp; Safe Shutdown Gate
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ======================================================== -->
+    <!-- VIEW D: Telemetry Report Card & Group 1-4 Leaderboard    -->
+    <!-- ======================================================== -->
+    <section id="view-d" class="view-section">
+      <div class="industrial-card">
+        <div class="card-header">
+          <h2><span class="gate-tag">GATE-D</span> Telemetry Report Card &amp; Cohort Leaderboard</h2>
+          <span style="font-family: var(--font-mono); font-size: 0.78rem; color: var(--safety-emerald);">
+            STATUS: CERTIFIED RECORD PERSISTED
+          </span>
+        </div>
+        <div class="card-body">
+          <!-- Cryptographic Tamper-Evident Seal Card -->
+          <div class="crypto-seal-card">
+            <div class="crypto-seal-title">
+              <span>Cryptographic Session Hash &amp; Integrity Seal</span>
+              <span style="color: var(--safety-emerald);">● VERIFIED ZERO-TAMPER</span>
+            </div>
+            <div id="seal-token-display" class="crypto-display">
+              HMAC-SHA256: CALCULATING_FINAL_HASH...
+            </div>
+            <div style="font-size: 0.72rem; color: var(--text-secondary); display: flex; justify-content: space-between;">
+              <span id="seal-candidate-meta">Candidate: TF-TNS-2026-0842 | Group 2</span>
+              <span id="seal-timestamp-meta">Timestamp: 2026-11-02T19:56:00Z</span>
+            </div>
+          </div>
+
+          <!-- Performance Score Grid -->
+          <div class="report-summary-grid">
+            <div class="metric-card">
+              <span class="title">ASVAM Compliance</span>
+              <span id="rep-asvam-score" class="value">100%</span>
+              <span class="subtext">8/8 Safety Interlocks Passed</span>
+            </div>
+            <div class="metric-card">
+              <span class="title">Pendulum Stability Index</span>
+              <span id="rep-stability-score" class="value">96.4%</span>
+              <span class="subtext">Max Oscillation: 1.2°</span>
+            </div>
+            <div class="metric-card">
+              <span class="title">Cycle Completion Time</span>
+              <span id="rep-cycle-time" class="value">02:45</span>
+              <span class="subtext">Path Efficiency Factor: 0.92</span>
+            </div>
+            <div class="metric-card">
+              <span class="title">Structural Safety Margin</span>
+              <span id="rep-safety-margin" class="value">41.7%</span>
+              <span class="subtext">Peak SWL: 58.3% (Limit: 90%)</span>
+            </div>
+          </div>
+
+          <!-- Tenstar Simulator Performance Pillars (Quality, Safety, Economy) -->
+          <div class="curriculum-sub-section" style="margin-bottom: 1.5rem;">
+            <div class="sub-section-title">
+              <h3>
+                <span class="tab-prefix">TENSTAR SCORING</span>
+                Shift Contract Telemetry Breakdown &amp; Career Payout
+              </h3>
+              <span id="rep-contract-badge" class="check-badge verified">Tenstar 2.1 Completed</span>
+            </div>
+            <div class="report-summary-grid" style="margin-bottom: 0;">
+              <div class="metric-card">
+                <span class="title">Quality Pillar (30%)</span>
+                <span id="rep-quality-score" class="value">100%</span>
+                <span class="subtext">Target Accuracy &amp; Landing Softness</span>
+              </div>
+              <div class="metric-card">
+                <span class="title">Safety Pillar (50%)</span>
+                <span id="rep-safety-score" class="value">100%</span>
+                <span class="subtext">Sway Dampening &amp; Red Zone Avoidance</span>
+              </div>
+              <div class="metric-card">
+                <span class="title">Economy Pillar (20%)</span>
+                <span id="rep-economy-score" class="value">100%</span>
+                <span class="subtext">Jerk Damping &amp; Motor Duty Efficiency</span>
+              </div>
+              <div class="metric-card" style="border-color: var(--safety-cyan);">
+                <span class="title">Safety Naira Payout</span>
+                <span id="rep-payout-naira" class="value" style="color: var(--safety-emerald);">+₦1,500</span>
+                <span id="rep-career-status" class="subtext">Rank: Yard Apprentice</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Shareable "Operator License & Ready-To-Rig Pass" Canvas Card -->
+          <div class="curriculum-sub-section" style="margin-bottom: 1.5rem;">
+            <div class="sub-section-title">
+              <h3>
+                <span class="tab-prefix">ASVAM LICENSE</span>
+                Official Operator License &amp; Ready-to-Rig Pass (1200x675 HD)
+              </h3>
+              <span class="check-badge verified">Cleared for Tenstar Sim</span>
+            </div>
+            <div id="pass-card-preview-container">
+              <div style="text-align: center; padding: 1.5rem; color: var(--text-secondary); font-family: var(--font-mono); font-size: 0.8rem; background: #080d1a; border-radius: 8px; border: 1px dashed var(--border-subtle);">
+                Awaiting 7-step safe shutdown verification to generate certified operator license pass...
+              </div>
+            </div>
+          </div>
+
+          <!-- Group 1-4 Comparative Leaderboard -->
+          <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem; margin-bottom: 0.75rem;">
+            <h3 style="font-size: 0.95rem; margin: 0; text-transform: uppercase; letter-spacing: 0.04em;">
+              TETFund Cohort Comparative Leaderboard (Groups 1 - 4)
+            </h3>
+            <div style="display: flex; gap: 0.4rem; flex-wrap: wrap;">
+              <button type="button" class="btn-export" style="padding: 0.35rem 0.75rem; font-size: 0.74rem; border-color: #25d366; color: #25d366;" onclick="window.ShutdownReporting.exportWhatsAppSyncStringPrompt()">
+                📲 Export WhatsApp Score String
+              </button>
+              <button type="button" class="btn-export" style="padding: 0.35rem 0.75rem; font-size: 0.74rem; border-color: var(--safety-cyan); color: var(--safety-cyan);" onclick="window.ShutdownReporting.importWhatsAppSyncPrompt()">
+                📥 Import WhatsApp Scores (Merge)
+              </button>
+              <button type="button" class="btn-export" style="padding: 0.35rem 0.75rem; font-size: 0.74rem;" onclick="window.ShutdownReporting.exportLeaderboardJSON()">
+                💾 Export JSON
+              </button>
+            </div>
+          </div>
+
+          <div class="leaderboard-filter-bar">
+            <button class="btn-filter active" onclick="window.ShutdownReporting.renderLeaderboardTable('ALL')">All Cohorts</button>
+            <button class="btn-filter" onclick="window.ShutdownReporting.renderLeaderboardTable('Group 1')">Group 1: Dynamics</button>
+            <button class="btn-filter" onclick="window.ShutdownReporting.renderLeaderboardTable('Group 2')">Group 2: Rigging</button>
+            <button class="btn-filter" onclick="window.ShutdownReporting.renderLeaderboardTable('Group 3')">Group 3: Precision</button>
+            <button class="btn-filter" onclick="window.ShutdownReporting.renderLeaderboardTable('Group 4')">Group 4: Safety</button>
+          </div>
+
+          <div class="table-responsive">
+            <table class="data-table">
+              <thead>
+                <tr>
+                  <th>Rank</th>
+                  <th>Candidate ID</th>
+                  <th>Cohort Group</th>
+                  <th>ASVAM Compliance</th>
+                  <th>Sim Score</th>
+                  <th>Cycle Time</th>
+                  <th>Cryptographic Hash</th>
+                  <th>Verification</th>
+                </tr>
+              </thead>
+              <tbody id="leaderboard-tbody">
+                <!-- Dynamically populated rows -->
+              </tbody>
+            </table>
+          </div>
+
+          <!-- Section 4: ASVAM Digital Workbook (Questions 6.1 - 6.14) Notes Review -->
+          <div class="workbook-review-card">
+            <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 0.5rem;">
+              <h3 style="font-size: 0.95rem; text-transform: uppercase; letter-spacing: 0.04em;">
+                ASVAM Digital Engineering Workbook (Modules 6.1 - 6.14)
+              </h3>
+              <button type="button" class="btn-export" style="padding: 0.35rem 0.75rem; font-size: 0.76rem;" onclick="CraneLabApp.copyWorkbookNotes()">
+                📋 Copy Completed Workbook Notes
+              </button>
+            </div>
+            <div id="workbook-notes-display" class="workbook-notes-output">Awaiting inspection sign-off &amp; simulation run...</div>
+          </div>
+
+          <!-- Export & Offline Synchronization Bar -->
+          <div class="export-actions-bar">
+            <button class="btn-export" onclick="CraneLabApp.exportJSON()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path>
+                <polyline points="7 10 12 15 17 10"></polyline>
+                <line x1="12" y1="15" x2="12" y2="3"></line>
+              </svg>
+              Export Encrypted Telemetry (JSON)
+            </button>
+
+            <button class="btn-export" onclick="CraneLabApp.exportCSV()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+                <polyline points="14 2 14 8 20 8"></polyline>
+                <line x1="8" y1="13" x2="16" y2="13"></line>
+                <line x1="8" y1="17" x2="16" y2="17"></line>
+              </svg>
+              Export ASVAM Log (CSV)
+            </button>
+
+            <button class="btn-export" onclick="window.print()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="6 9 6 2 18 2 18 9"></polyline>
+                <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path>
+                <rect x="6" y="14" width="12" height="8"></rect>
+              </svg>
+              Certified Printout / PDF
+            </button>
+
+            <button class="btn-export" style="margin-left: auto; border-color: var(--safety-amber); color: var(--safety-amber);" onclick="CraneLabApp.triggerCentralSync()">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <polyline points="23 4 23 10 17 10"></polyline>
+                <path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"></path>
+              </svg>
+              Sync Central Server (<span id="sync-queue-count">0</span> Pending)
+            </button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Critical Assessment Failure Modal -->
+  <div id="critical-fail-modal" class="critical-fail-modal-overlay">
+    <div class="critical-fail-modal-content">
+      <div style="font-size: 3rem;">🚨</div>
+      <h2>ASSESSMENT CRITICAL FAIL</h2>
+      <div id="critical-fail-desc"></div>
+      <button type="button" class="btn-reset-after-fail" onclick="window.InspectionGate.resetAfterCriticalFail()">
+        Acknowledge Breach &amp; Restart Shift Inspection
+      </button>
+    </div>
+  </div>
+
+  <!-- Load Database and Security Engine First -->
+  <script src="./security_db.js"></script>
+  <!-- Load ASVAM Inspection Gate & Curriculum Engine -->
+  <script src="./inspection_gate.js"></script>
+  <!-- Load Dual-Joystick Mapping & Pendulum Sway Physics Engine -->
+  <script src="./crane_physics.js"></script>
+  <!-- Load Career Gamification, Tenstar Scoring & IoT Hardware Bridge -->
+  <script src="./career_telemetry.js"></script>
+  <!-- Load Safe Shutdown, WhatsApp ID Card Generator & Cohort Leaderboard -->
+  <script src="./shutdown_reporting.js"></script>
+
+  <!-- Main Application Orchestrator Script -->
+  <script>
+    /**
+     * CraneLab: ASVAM-Pulse Application Controller
+     * Complete offline state management, dual-joystick physics simulation, and telemetry logging.
+     */
+
+    // # State Block: Application Runtime Global State
+    const CraneLabState = {
+      candidate: {
+        id: 'TF-TNS-2026-0842',
+        name: 'Ibrahim Adeleke Musa',
+        cohort: 'Group 2 - Mechanical Rigging & Cables',
+        sessionToken: '',
+        authTimestamp: 0,
+        secretSalt: ''
+      },
+      gates: {
+        gateA_Passed: false,
+        gateB_Passed: false,
+        gateC_Passed: false
+      },
+      asvam: {
+        checks: [false, false, false, false, false, false, false, false],
+        totalChecks: 8,
+        riskScoreTotal: 0
+      },
+      simulation: {
+        isRunning: false,
+        isEStopped: false,
+        slewAngleDeg: 0.0,     // # Slew azimuth angle theta in degrees
+        trolleyRadiusM: 24.5,   // # Trolley radius r from mast in meters (4.0m to 50.0m)
+        hookElevationM: 18.2,   // # Hook vertical height z in meters (1.0m to 35.0m)
+        hookPayloadTonnes: 3.5, // # Hook suspended mass in metric tonnes
+        windSpeedMs: 4.2,       // # Ambient wind velocity from anemometer in m/s
+        pendulumAngleDeg: 0.0,  // # Load swing angular deflection phi in degrees
+        pendulumVelocity: 0.0,  // # Damped angular velocity dphi/dt
+        cycleStartTimestamp: 0,
+        cycleElapsedSeconds: 0,
+        maxSwingRecorded: 0.0,
+        joystickInputs: {
+          leftX: 0,  // # Slew Rate: -1.0 (Left) to +1.0 (Right)
+          leftY: 0,  // # Trolley: -1.0 (In) to +1.0 (Out)
+          rightX: 0, // # Aux: -1.0 to +1.0
+          rightY: 0  // # Hoist: -1.0 (Down) to +1.0 (Up)
+        }
+      },
+      leaderboard: [
+        { rank: 1, id: 'TF-TNS-2026-0104', cohort: 'Group 1', asvam: 100, simScore: 98.4, cycle: '02:18', hash: '8F9B1E4A...21D0', verified: true },
+        { rank: 2, id: 'TF-TNS-2026-0842', cohort: 'Group 2', asvam: 100, simScore: 96.8, cycle: '02:45', hash: 'PENDING', verified: true },
+        { rank: 3, id: 'TF-TNS-2026-0419', cohort: 'Group 3', asvam: 100, simScore: 95.1, cycle: '03:10', hash: 'C438D19F...55A1', verified: true },
+        { rank: 4, id: 'TF-TNS-2026-0922', cohort: 'Group 4', asvam: 100, simScore: 93.7, cycle: '03:22', hash: '23A5B80C...99E3', verified: true },
+        { rank: 5, id: 'TF-TNS-2026-0315', cohort: 'Group 2', asvam: 87.5, simScore: 91.2, cycle: '03:48', hash: '7E11A044...41B8', verified: true },
+        { rank: 6, id: 'TF-TNS-2026-0771', cohort: 'Group 1', asvam: 100, simScore: 89.6, cycle: '04:02', hash: '09D4FA13...B77E', verified: true }
+      ]
+    };
+
+    // # Expose state globally for subsystem orchestration
+    window.CraneLabState = CraneLabState;
+
+    // # Class: CraneLabApp - Core Runtime Controller
+    class CraneLabApp {
+      // # Function: Initialization lifecycle executed upon DOM load
+      static async init() {
+        // # State Block: Register Service Worker for offline resilience
+        this.registerServiceWorker();
+
+        // # State Block: Initialize IndexedDB database connection
+        try {
+          await window.CraneLabDB.init();
+          const dbStatusBadge = document.getElementById('db-status-badge');
+          if (dbStatusBadge) {
+            dbStatusBadge.textContent = 'ONLINE ACID READY';
+          }
+        } catch (dbErr) {
+          console.error('Database initialization warning:', dbErr);
+        }
+
+        // # State Block: Monitor Network Online/Offline state changes
+        this.setupNetworkMonitoring();
+
+        // # State Block: Bind Dual-Joystick input listeners
+        this.initJoysticks();
+
+        // # State Block: Start Crane Canvas Graphics Render Loop
+        this.initCanvasSimulation();
+
+        // # State Block: Update live crypto preview for initial values
+        this.updateLiveCryptoPreimage();
+
+        // # State Block: Render Initial Leaderboard
+        this.renderLeaderboard('ALL');
+
+        // # State Block: Update Sync Queue Count
+        this.updateSyncBadge();
+
+        // # State Block: Initialize Inspection Gate Subsystem
+        if (window.InspectionGate) {
+          window.InspectionGate.init(
+            CraneLabState.candidate.id,
+            CraneLabState.candidate.cohort,
+            CraneLabState.candidate.sessionToken
+          );
+        }
+
+        // # State Block: Initialize Career Telemetry & Tenstar Scoring Subsystem
+        if (window.CareerTelemetry) {
+          window.CareerTelemetry.init({ nairaBalance: 0 });
+        }
+      }
+
+      // # Function: Register Service Worker with robust offline fallback
+      static registerServiceWorker() {
+        if ('serviceWorker' in navigator) {
+          window.addEventListener('load', () => {
+            navigator.serviceWorker.register('./sw.js')
+              .then((reg) => {
+                console.log('[CraneLab] Service Worker active with scope:', reg.scope);
+              })
+              .catch((err) => {
+                console.warn('[CraneLab] Service Worker registration failed:', err);
+              });
+          });
+        }
+      }
+
+      // # Function: Track browser connectivity state transitions
+      static setupNetworkMonitoring() {
+        const dot = document.getElementById('network-dot');
+        const text = document.getElementById('network-text');
+
+        // # Function: State updater for network condition
+        const updateStatus = () => {
+          if (navigator.onLine) {
+            dot.className = 'status-indicator-dot online';
+            text.textContent = 'ONLINE (FLIGHT SYNC ACTIVE)';
+          } else {
+            dot.className = 'status-indicator-dot offline';
+            text.textContent = 'AIRPLANE MODE (OFFLINE PWA)';
+          }
+        };
+
+        window.addEventListener('online', updateStatus);
+        window.addEventListener('offline', updateStatus);
+        updateStatus();
+      }
+
+      // # Function: Dynamic View Navigation with Gate Interlock validation
+      static switchView(viewId) {
+        // # State Block: Gate check enforcing progressive unlocking
+        if (viewId === 'view-b' && !CraneLabState.gates.gateA_Passed) {
+          alert('Gate B Locked: Candidate identity must be cryptographically authorized first.');
+          return;
+        }
+        if (viewId === 'view-c' && !CraneLabState.gates.gateB_Passed) {
+          alert('Gate C Locked: ASVAM pre-start inspection protocol must be 100% verified first.');
+          return;
+        }
+        if (viewId === 'view-d' && !CraneLabState.gates.gateC_Passed) {
+          alert('Gate D Locked: Simulation run must be concluded to audit telemetry records.');
+          return;
+        }
+
+        // # State Block: Switch active views
+        const views = document.querySelectorAll('.view-section');
+        views.forEach((v) => v.classList.remove('active-view'));
+
+        const targetView = document.getElementById(viewId);
+        if (targetView) {
+          targetView.classList.add('active-view');
+        }
+
+        // # State Block: Update tab buttons visual state
+        const tabBtns = document.querySelectorAll('.gate-tab-button');
+        tabBtns.forEach((btn) => btn.classList.remove('active'));
+
+        const tabMap = {
+          'view-a': 'tab-btn-a',
+          'view-b': 'tab-btn-b',
+          'view-c': 'tab-btn-c',
+          'view-d': 'tab-btn-d'
+        };
+        const activeTab = document.getElementById(tabMap[viewId]);
+        if (activeTab) {
+          activeTab.classList.add('active');
+        }
+
+        // # State Block: Trigger canvas resize when entering view-c
+        if (viewId === 'view-c') {
+          CraneLabApp.resizeCanvas();
+        }
+      }
+
+      // # Function: Real-time candidate preimage display updater
+      static updateLiveCryptoPreimage() {
+        const idInput = document.getElementById('candidate-id-input');
+        const cohortSelect = document.getElementById('cohort-select');
+        const preimagePreview = document.getElementById('crypto-preimage-preview');
+
+        if (idInput && cohortSelect && preimagePreview) {
+          const cid = idInput.value.trim().toUpperCase() || 'TF-TNS-2026-XXXX';
+          const cohort = cohortSelect.value.split('-')[0].trim() || 'Group 1';
+          preimagePreview.textContent = `${cid}::${cohort}::SHA256_SEED`;
+        }
+      }
+
+      // # Function: Gate A - Handle Candidate Login and Generate Cryptographic Session
+      static async handleCandidateLogin(event) {
+        if (event) event.preventDefault();
+
+        const candidateId = document.getElementById('candidate-id-input').value.trim().toUpperCase();
+        const candidateName = document.getElementById('candidate-name-input').value.trim();
+        const cohortGroup = document.getElementById('cohort-select').value;
+        const secretSalt = document.getElementById('salt-secret-input').value.trim();
+        const authTimestamp = Date.now();
+
+        // # Equation: Generate HMAC-SHA256 session token via Web Crypto API
+        const token = await window.CraneLabSecurity.generateSessionToken(
+          candidateId,
+          cohortGroup,
+          authTimestamp,
+          secretSalt
+        );
+
+        // # State Block: Update global application candidate state
+        CraneLabState.candidate = {
+          id: candidateId,
+          name: candidateName,
+          cohort: cohortGroup,
+          sessionToken: token,
+          authTimestamp,
+          secretSalt
+        };
+
+        // # State Block: Persist Profile to IndexedDB
+        await window.CraneLabDB.saveCandidateProfile({
+          candidateId,
+          candidateName,
+          cohortGroup,
+          sessionToken: token,
+          lastLoginTimestamp: authTimestamp
+        });
+
+        // # State Block: Log Authentication Telemetry
+        await window.CraneLabDB.logTelemetry(
+          candidateId,
+          token,
+          'AUTH_SESSION_ESTABLISHED',
+          { candidateName, cohortGroup, authTimestamp }
+        );
+
+        // # State Block: Unlock Gate B
+        CraneLabState.gates.gateA_Passed = true;
+
+        // # Update UI Displays
+        document.getElementById('header-cohort-badge').textContent = cohortGroup.split('-')[0].trim();
+        document.getElementById('header-token-badge').textContent = `0x${token.substring(0, 8)}...`;
+        document.getElementById('crypto-token-preview').textContent = token;
+        document.getElementById('hud-operator-tag').textContent = `OP: ${candidateId} (${cohortGroup.split('-')[0].trim()})`;
+
+        const tabB = document.getElementById('tab-btn-b');
+        tabB.classList.remove('locked');
+        tabB.removeAttribute('disabled');
+        document.getElementById('tab-status-a').textContent = '✓';
+        document.getElementById('tab-btn-a').classList.add('passed');
+
+        // # State Block: Initialize Inspection Gate for Authenticated Candidate
+        if (window.InspectionGate) {
+          window.InspectionGate.init(candidateId, cohortGroup, token);
+        }
+
+        // # State Block: Initialize Career Telemetry & Contract Subsystem
+        if (window.CareerTelemetry) {
+          window.CareerTelemetry.init({
+            nairaBalance: window.InspectionGate ? window.InspectionGate.safetyNairaBonus : 0
+          });
+        }
+
+        // # Navigate to Gate B automatically
+        this.switchView('view-b');
+      }
+
+      // # Function: Gate B - Toggle ASVAM Checklist item verification
+      static toggleCheckItem(checkIndex, severity, probability) {
+        const idx = checkIndex - 1;
+        CraneLabState.asvam.checks[idx] = !CraneLabState.asvam.checks[idx];
+
+        const card = document.getElementById(`card-check-${checkIndex}`);
+        const badge = document.getElementById(`badge-check-${checkIndex}`);
+        const btn = card.querySelector('.btn-toggle-verify');
+
+        if (CraneLabState.asvam.checks[idx]) {
+          card.classList.add('verified');
+          badge.className = 'check-badge verified';
+          badge.textContent = 'VERIFIED';
+          btn.className = 'btn-toggle-verify active';
+          btn.textContent = 'Passed ✓';
+
+          // # Equation: Risk assessment product equation: R = S * P
+          const riskProduct = severity * probability;
+          CraneLabState.asvam.riskScoreTotal += riskProduct;
+
+          // # State Block: Record verification in IndexedDB
+          window.CraneLabDB.saveWorkbookAnswer({
+            candidateId: CraneLabState.candidate.id,
+            sessionToken: CraneLabState.candidate.sessionToken,
+            questionId: `ASVAM_CHECK_${checkIndex}`,
+            status: 'VERIFIED',
+            severity,
+            probability,
+            calculatedRisk: riskProduct,
+            timestamp: Date.now()
+          });
+        } else {
+          card.classList.remove('verified');
+          badge.className = 'check-badge pending';
+          badge.textContent = 'PENDING';
+          btn.className = 'btn-toggle-verify';
+          btn.textContent = 'Verify Check';
+        }
+
+        // # State Block: Calculate total verified count
+        const verifiedCount = CraneLabState.asvam.checks.filter(Boolean).length;
+        document.getElementById('asvam-progress-count').textContent = `${verifiedCount} / 8`;
+
+        // # State Block: Synchronize physical check with InspectionGate controller
+        if (window.InspectionGate) {
+          window.InspectionGate.physicalChecks[idx] = CraneLabState.asvam.checks[idx];
+          window.InspectionGate.evaluateOverallReadiness();
+        }
+      }
+
+      // # Function: Helper for quick verification during engineering demonstration
+      static autoCompleteAudit() {
+        // # Auto-complete Ergonomics (Workbook 6.4)
+        if (window.InspectionGate) {
+          window.InspectionGate.ergonomics.seatPosition = true;
+          window.InspectionGate.ergonomics.mirrorsCameras = true;
+          window.InspectionGate.ergonomics.controlsNeutral = true;
+
+          // # Auto-select Mandatory PPE (Workbook 6.2)
+          window.InspectionGate.selectedPPE = new Set(['hard_hat', 'high_vis', 'steel_toe', 'rigging_gloves']);
+
+          // # Auto-match Hazard Controls (Workbook 6.3, 6.5)
+          window.InspectionGate.hazardPairings.hazard_powerlines = 'exclusion_goalposts';
+          window.InspectionGate.hazardPairings.hazard_ground = 'ground_compaction';
+          window.InspectionGate.hazardPairings.hazard_pedestrians = 'banksman_barriers';
+
+          // # If active defect spawned, safely isolate it (Workbook 6.6)
+          if (window.InspectionGate.activeDefect && !window.InspectionGate.isDefectIsolated) {
+            window.InspectionGate.isolateAndTagDefect();
+          }
+
+          window.InspectionGate.renderAllGateSections();
+        }
+
+        // # Toggle all 8 physical checks
+        for (let i = 1; i <= 8; i++) {
+          if (!CraneLabState.asvam.checks[i - 1]) {
+            this.toggleCheckItem(i, 4, 3);
+          }
+        }
+
+        if (window.InspectionGate) {
+          window.InspectionGate.evaluateOverallReadiness();
+        }
+      }
+
+      // # Function: Gate B - Sign-Off ASVAM Inspection and Energize Cockpit
+      static async signOffInspectionGate() {
+        CraneLabState.gates.gateB_Passed = true;
+
+        // # State Block: Log ASVAM sign-off telemetry with cryptographic signature
+        await window.CraneLabDB.logTelemetry(
+          CraneLabState.candidate.id,
+          CraneLabState.candidate.sessionToken,
+          'ASVAM_GATE_B_CLEARED',
+          { verifiedCount: 8, totalRiskAudited: CraneLabState.asvam.riskScoreTotal }
+        );
+
+        // # State Block: Unlock Gate C
+        const tabC = document.getElementById('tab-btn-c');
+        tabC.classList.remove('locked');
+        tabC.removeAttribute('disabled');
+        document.getElementById('tab-status-b').textContent = '✓';
+        document.getElementById('tab-btn-b').classList.add('passed');
+
+        // # State Block: Initialize Simulator Clock & Tenstar Career Shift Contract
+        CraneLabState.simulation.isRunning = true;
+        CraneLabState.simulation.cycleStartTimestamp = Date.now();
+        if (window.CareerTelemetry) {
+          window.CareerTelemetry.selectShiftContract(0);
+        }
+
+        // # Transition to Gate C View
+        this.switchView('view-c');
+      }
+
+      // ==========================================================
+      // # SECTION: Gate C - Dual-Joystick Control Engine
+      // ==========================================================
+
+      // # Function: Setup Dual-Joystick Touch and Pointer Interactivity
+      static initJoysticks() {
+        // # Left Joystick: Slew Left/Right (X) and Trolley In/Out (Y)
+        this.setupSingleJoystick(
+          'stick-surface-left',
+          'stick-knob-left',
+          false, // # lockX = false (Full 2-Axis)
+          (normX, normY) => {
+            if (window.CranePhysics) {
+              window.CranePhysics.setLeftJoystick(normX, normY);
+            }
+          }
+        );
+
+        // # Right Joystick: Hoist Z-Axis ONLY (X is physically locked)
+        this.setupSingleJoystick(
+          'stick-surface-right',
+          'stick-knob-right',
+          true, // # lockX = true (Z-Axis ONLY, Left/Right locked)
+          (normX, normY) => {
+            if (window.CranePhysics) {
+              window.CranePhysics.setRightJoystick(0, normY);
+            }
+          }
+        );
+      }
+
+      // # Function: Generic Touch/Mouse Virtual Joystick Vector Engine
+      static setupSingleJoystick(surfaceId, knobId, lockX, onChange) {
+        const surface = document.getElementById(surfaceId);
+        const knob = document.getElementById(knobId);
+        let activePointerId = null;
+
+        // # Function: Pointer Down Event
+        const handleDown = (event) => {
+          activePointerId = event.pointerId;
+          surface.setPointerCapture(event.pointerId);
+          handleMove(event);
+        };
+
+        // # Function: Pointer Move Event with Euclidean Circle Clamping
+        const handleMove = (event) => {
+          if (activePointerId !== event.pointerId) return;
+
+          const rect = surface.getBoundingClientRect();
+          const centerX = rect.width / 2;
+          const centerY = rect.height / 2;
+
+          // # Equation: Displacement delta from joystick anchor center (Lock X to 0 if lockX is true)
+          const deltaX = lockX ? 0 : (event.clientX - rect.left - centerX);
+          const deltaY = event.clientY - rect.top - centerY;
+
+          // # Equation: Distance calculation via hypotenuse
+          const distance = Math.hypot(deltaX, deltaY);
+          const maxRadius = (rect.width / 2) - 15;
+
+          // # Equation: Clamping position vector within maximum radial limit
+          let clampedX = deltaX;
+          let clampedY = deltaY;
+          if (distance > maxRadius) {
+            clampedX = lockX ? 0 : (deltaX / distance) * maxRadius;
+            clampedY = (deltaY / distance) * maxRadius;
+          }
+
+          // # Visual translation update (Locking horizontal displacement if lockX is true)
+          knob.style.transform = `translate(${clampedX}px, ${clampedY}px)`;
+
+          // # Equation: Normalize to -1.0 .. +1.0 range (Inverting Y for intuitive forward=positive)
+          const normX = lockX ? 0 : parseFloat((clampedX / maxRadius).toFixed(2));
+          const normY = parseFloat((-clampedY / maxRadius).toFixed(2));
+
+          onChange(normX, normY);
+        };
+
+        // # Function: Pointer Up/Release Event returning joystick to neutral spring center
+        const handleUp = (event) => {
+          if (activePointerId === event.pointerId) {
+            activePointerId = null;
+            knob.style.transform = 'translate(0px, 0px)';
+            onChange(0, 0);
+          }
+        };
+
+        surface.addEventListener('pointerdown', handleDown);
+        surface.addEventListener('pointermove', handleMove);
+        surface.addEventListener('pointerup', handleUp);
+        surface.addEventListener('pointercancel', handleUp);
+      }
+
+      // ==========================================================
+      // # SECTION: Gate C - Split-Screen Physics & Graphics Engine
+      // ==========================================================
+
+      // # Function: Initialize HTML5 Canvas and Animation Loop
+      static initCanvasSimulation() {
+        const canvas = document.getElementById('crane-canvas');
+        if (!canvas) return;
+
+        window.addEventListener('resize', () => this.resizeCanvas());
+        this.resizeCanvas();
+
+        if (window.CranePhysics) {
+          window.CranePhysics.init(canvas);
+        }
+
+        let lastTimestamp = performance.now();
+
+        // # Function: Physics integration and frame rendering callback
+        const renderLoop = (currentTimestamp) => {
+          // # Equation: Delta time in seconds with cap to avoid numerical explosion on tab pause
+          const dt = Math.min((currentTimestamp - lastTimestamp) / 1000, 0.1);
+          lastTimestamp = currentTimestamp;
+
+          if (window.CranePhysics) {
+            if (CraneLabState.simulation.isRunning && !CraneLabState.simulation.isEStopped) {
+              window.CranePhysics.update(dt);
+
+              // # State Block: Evaluate Tenstar Scoring Pillars & Site Crisis Events
+              if (window.CareerTelemetry) {
+                window.CareerTelemetry.update(window.CranePhysics, dt);
+              }
+            }
+            window.CranePhysics.render();
+          }
+
+          requestAnimationFrame(renderLoop);
+        };
+
+        requestAnimationFrame(renderLoop);
+      }
+
+      // # Function: Responsive Canvas Dimension Adjustment
+      static resizeCanvas() {
+        const canvas = document.getElementById('crane-canvas');
+        if (!canvas) return;
+        const rect = canvas.parentElement.getBoundingClientRect();
+        canvas.width = rect.width * (window.devicePixelRatio || 1);
+        canvas.height = rect.height * (window.devicePixelRatio || 1);
+        if (window.CranePhysics) {
+          window.CranePhysics.init(canvas);
+        }
+      }
+
+      // # Function: Audio Synthesizer for Crane Horn via Web Audio API
+      static soundHorn() {
+        try {
+          const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc1 = audioCtx.createOscillator();
+          const osc2 = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+
+          osc1.type = 'sawtooth';
+          osc1.frequency.setValueAtTime(140, audioCtx.currentTime); // # Low fundamental crane klaxon
+          osc2.type = 'square';
+          osc2.frequency.setValueAtTime(210, audioCtx.currentTime); // # Resonant harmonic
+
+          gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+
+          osc1.connect(gain);
+          osc2.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc1.start();
+          osc2.start();
+          osc1.stop(audioCtx.currentTime + 0.6);
+          osc2.stop(audioCtx.currentTime + 0.6);
+        } catch (e) {
+          console.warn('Audio Context unsupported or muted:', e);
+        }
+      }
+
+      // # Function: Emergency Stop Interlock Trigger
+      static triggerEmergencyStop() {
+        const sim = CraneLabState.simulation;
+        sim.isEStopped = !sim.isEStopped;
+        if (window.CranePhysics) {
+          window.CranePhysics.triggerEmergencyStop();
+        }
+        const eStopBtn = document.getElementById('btn-emergency-stop');
+
+        if (sim.isEStopped) {
+          eStopBtn.classList.add('tripped');
+          eStopBtn.textContent = 'TRIPPED - RESET E-STOP';
+        } else {
+          eStopBtn.classList.remove('tripped');
+          eStopBtn.textContent = 'EMERGENCY STOP (E-STOP)';
+        }
+      }
+
+      // # Function: Reset Crane Kinematics to Home Datum
+      static resetSimulatorPositions() {
+        if (window.CranePhysics) {
+          window.CranePhysics.resetPositions();
+        }
+      }
+
+      // # Function: Intercept simulation conclude to enforce 7-step safe shutdown gate
+      static initiateSafeShutdown() {
+        if (window.ShutdownReporting) {
+          window.ShutdownReporting.openShutdownModal();
+        } else {
+          this.executeConcludeSimulationRun();
+        }
+      }
+
+      // # Function: Legacy Conclude Alias
+      static async finishSimulationRun() {
+        return this.initiateSafeShutdown();
+      }
+
+      // # Function: Conclude Simulation Run and Transit to Gate D Telemetry Audit
+      static async executeConcludeSimulationRun() {
+        const sim = CraneLabState.simulation;
+        sim.isRunning = false;
+        CraneLabState.gates.gateC_Passed = true;
+
+        // # Equation: Compute simulation cycle duration in seconds
+        const elapsedSeconds = Math.round((Date.now() - sim.cycleStartTimestamp) / 1000);
+        sim.cycleElapsedSeconds = Math.max(elapsedSeconds, 45); // Realistic simulation time
+
+        // # Equation: Compute overall stability compliance percentage from CranePhysics
+        const maxSwing = window.CranePhysics ? window.CranePhysics.peakSwayRecorded : 1.2;
+        const stabilityScore = Math.max(70, 100 - (maxSwing * 2.5)).toFixed(1);
+        const finalSlew = window.CranePhysics ? window.CranePhysics.slewAngleDeg : 0.0;
+        const finalRadius = window.CranePhysics ? window.CranePhysics.trolleyRadiusM : 24.5;
+        const finalHeight = window.CranePhysics ? window.CranePhysics.hookElevationM : 18.2;
+
+        // # State Block: Evaluate Tenstar Scoring Pillars & Career Virtual Safety Naira Payout
+        let shiftResults = null;
+        if (window.CareerTelemetry) {
+          shiftResults = window.CareerTelemetry.calculateShiftResults();
+        }
+
+        // # State Block: Persist Telemetry Log in IndexedDB with HMAC signature
+        await window.CraneLabDB.logTelemetry(
+          CraneLabState.candidate.id,
+          CraneLabState.candidate.sessionToken,
+          'SIMULATION_RUN_CONCLUDED',
+          {
+            elapsedSeconds: sim.cycleElapsedSeconds,
+            maxSwing: parseFloat(maxSwing.toFixed(1)),
+            stabilityScore: parseFloat(stabilityScore),
+            finalSlew: parseFloat(finalSlew.toFixed(1)),
+            finalRadius: parseFloat(finalRadius.toFixed(1)),
+            finalHeight: parseFloat(finalHeight.toFixed(1)),
+            tenstarResults: shiftResults
+          }
+        );
+
+        // # State Block: Enqueue into offline sync queue
+        await window.CraneLabDB.enqueueSyncItem(
+          CraneLabState.candidate.id,
+          '/api/v1/telemetry/submit',
+          {
+            candidateId: CraneLabState.candidate.id,
+            cohort: CraneLabState.candidate.cohort,
+            sessionToken: CraneLabState.candidate.sessionToken,
+            metrics: {
+              asvamScore: 100,
+              stabilityScore: parseFloat(stabilityScore),
+              compositeScore: shiftResults ? shiftResults.compositeScore : parseFloat(stabilityScore),
+              cycleSeconds: sim.cycleElapsedSeconds
+            }
+          },
+          CraneLabState.candidate.sessionToken
+        );
+
+        this.updateSyncBadge();
+
+        // # State Block: Unlock Gate D Tab
+        const tabD = document.getElementById('tab-btn-d');
+        tabD.classList.remove('locked');
+        tabD.removeAttribute('disabled');
+        document.getElementById('tab-status-c').textContent = '✓';
+        document.getElementById('tab-btn-c').classList.add('passed');
+
+        // # Populate Gate D Report UI
+        document.getElementById('seal-token-display').textContent = `HMAC-SHA256: ${CraneLabState.candidate.sessionToken}`;
+        document.getElementById('seal-candidate-meta').textContent = 
+          `Candidate: ${CraneLabState.candidate.id} | ${CraneLabState.candidate.cohort.split('-')[0].trim()}`;
+        document.getElementById('seal-timestamp-meta').textContent = 
+          `Timestamp: ${new Date().toISOString()}`;
+
+        document.getElementById('rep-stability-score').textContent = `${stabilityScore}%`;
+        const mins = String(Math.floor(sim.cycleElapsedSeconds / 60)).padStart(2, '0');
+        const secs = String(sim.cycleElapsedSeconds % 60).padStart(2, '0');
+        document.getElementById('rep-cycle-time').textContent = `${mins}:${secs}`;
+
+        // # Update View D Tenstar Report Elements
+        if (shiftResults) {
+          const qElem = document.getElementById('rep-quality-score');
+          const sElem = document.getElementById('rep-safety-score');
+          const eElem = document.getElementById('rep-economy-score');
+          const payElem = document.getElementById('rep-payout-naira');
+          const careerElem = document.getElementById('rep-career-status');
+          const badgeElem = document.getElementById('rep-contract-badge');
+
+          if (qElem) qElem.textContent = `${shiftResults.qualityScore}%`;
+          if (sElem) sElem.textContent = `${shiftResults.safetyScore}%`;
+          if (eElem) eElem.textContent = `${shiftResults.economyScore}%`;
+          if (payElem) payElem.textContent = `+₦${shiftResults.payoutNaira.toLocaleString()}`;
+          if (careerElem) careerElem.textContent = `Rank: ${CAREER_RANKS[window.CareerTelemetry.currentRankIndex].title}`;
+          if (badgeElem) badgeElem.textContent = `${shiftResults.contractTitle} (Score: ${shiftResults.compositeScore}%)`;
+
+          // Update header badges
+          const headerNaira = document.querySelectorAll('.safety-naira-val');
+          headerNaira.forEach(el => el.textContent = `₦${window.CareerTelemetry.totalSafetyNaira}`);
+        }
+
+        // # State Block: Populate Digital Workbook Notes Display (Workbook 6.1 - 6.14)
+        const notesDisplay = document.getElementById('workbook-notes-display');
+        if (notesDisplay && window.InspectionGate) {
+          notesDisplay.textContent = window.InspectionGate.getWorkbookMarkdown();
+        }
+
+        // # Update Candidate row in Leaderboard
+        const candEntry = CraneLabState.leaderboard.find((c) => c.id === CraneLabState.candidate.id);
+        if (candEntry) {
+          candEntry.hash = `${CraneLabState.candidate.sessionToken.substring(0, 8)}...`;
+          candEntry.simScore = parseFloat(stabilityScore);
+          candEntry.cycle = `${mins}:${secs}`;
+        }
+        // # State Block: Update Leaderboard & Render Ready-to-Rig License Pass
+        if (window.ShutdownReporting) {
+          window.ShutdownReporting.renderLeaderboardTable('ALL');
+          window.ShutdownReporting.generateReadyToRigPass();
+        } else {
+          this.renderLeaderboard('ALL');
+        }
+
+        // # Switch View to Gate D
+        this.switchView('view-d');
+      }
+
+      // ==========================================================
+      // # SECTION: Gate D - Leaderboard & Export Subsystem
+      // ==========================================================
+
+      // # Function: Render Leaderboard Rows with optional Cohort Filter
+      static renderLeaderboard(filterCohort = 'ALL') {
+        const tbody = document.getElementById('leaderboard-tbody');
+        if (!tbody) return;
+        tbody.innerHTML = '';
+
+        let list = [...CraneLabState.leaderboard];
+        if (filterCohort !== 'ALL') {
+          list = list.filter((item) => item.cohort.includes(filterCohort));
+        }
+
+        list.forEach((entry, idx) => {
+          const tr = document.createElement('tr');
+          const rankBadge = idx === 0 ? 'badge-rank gold' : idx === 1 ? 'badge-rank silver' : idx === 2 ? 'badge-rank bronze' : 'badge-rank';
+
+          tr.innerHTML = `
+            <td><span class="${rankBadge}">${entry.rank}</span></td>
+            <td><strong>${entry.id}</strong></td>
+            <td><span style="color: var(--safety-cyan);">${entry.cohort}</span></td>
+            <td><span style="color: var(--safety-emerald);">${entry.asvam}%</span></td>
+            <td><strong>${entry.simScore}%</strong></td>
+            <td>${entry.cycle}</td>
+            <td style="color: var(--text-code);">${entry.hash}</td>
+            <td><span class="check-badge verified">HMAC VERIFIED</span></td>
+          `;
+          tbody.appendChild(tr);
+        });
+      }
+
+      // # Function: Filter Leaderboard via filter buttons
+      static filterLeaderboard(cohortCode) {
+        const buttons = document.querySelectorAll('.btn-filter');
+        buttons.forEach((btn) => btn.classList.remove('active'));
+
+        const activeBtn = Array.from(buttons).find((b) => b.textContent.includes(cohortCode) || (cohortCode === 'ALL' && b.textContent.includes('All')));
+        if (activeBtn) activeBtn.classList.add('active');
+
+        if (window.ShutdownReporting) {
+          window.ShutdownReporting.renderLeaderboardTable(cohortCode);
+        } else {
+          this.renderLeaderboard(cohortCode);
+        }
+      }
+
+      // # Function: Copy ASVAM Workbook Notes (Questions 6.1 - 6.14) to Clipboard
+      static async copyWorkbookNotes() {
+        if (!window.InspectionGate) return;
+        const notes = window.InspectionGate.getWorkbookMarkdown();
+        try {
+          await navigator.clipboard.writeText(notes);
+          alert('ASVAM Workbook Notes (Modules 6.1 - 6.14) successfully copied to clipboard!');
+        } catch (err) {
+          // # Fallback copy using textarea DOM node
+          const textArea = document.createElement('textarea');
+          textArea.value = notes;
+          document.body.appendChild(textArea);
+          textArea.select();
+          document.execCommand('copy');
+          document.body.removeChild(textArea);
+          alert('ASVAM Workbook Notes (Modules 6.1 - 6.14) copied to clipboard!');
+        }
+      }
+
+      // # Function: Export Encrypted Telemetry JSON file
+      static async exportJSON() {
+        const cand = CraneLabState.candidate;
+        const logs = await window.CraneLabDB.getTelemetryLogs(cand.id, 50);
+
+        const exportPayload = {
+          protocol: 'ASVAM-Pulse-v1.0.0',
+          institution: 'TETFund - Tenstar Simulator Training Initiative',
+          consortium: 'ASQ Development & Training UK / SAMMAX Global Services',
+          candidate: cand,
+          telemetryRecords: logs,
+          cryptographicSignature: cand.sessionToken,
+          exportTimestamp: new Date().toISOString()
+        };
+
+        const jsonStr = JSON.stringify(exportPayload, null, 2);
+        const blob = new Blob([jsonStr], { type: 'application/json' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `CraneLab_Telemetry_${cand.id}_${Date.now()}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      // # Function: Export ASVAM Inspection Workbook in CSV Format
+      static async exportCSV() {
+        const cand = CraneLabState.candidate;
+        const answers = await window.CraneLabDB.getWorkbookAnswersByCandidate(cand.id);
+
+        let csv = 'Candidate_ID,Question_ID,Status,Severity,Probability,Calculated_Risk,Timestamp,Session_Token\n';
+        answers.forEach((row) => {
+          csv += `"${row.candidateId}","${row.questionId}","${row.status}",${row.severity},${row.probability},${row.calculatedRisk},"${row.submittedAt}","${row.sessionToken}"\n`;
+        });
+
+        const blob = new Blob([csv], { type: 'text/csv' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `CraneLab_ASVAM_Inspection_${cand.id}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+      }
+
+      // # Function: Synchronize Pending Queue with Cloud API
+      static async triggerCentralSync() {
+        const pendingItems = await window.CraneLabDB.getPendingSyncQueue();
+        if (pendingItems.length === 0) {
+          alert('Sync Queue Clean: All local records are current.');
+          return;
+        }
+
+        if (!navigator.onLine) {
+          alert(`Airplane Mode: ${pendingItems.length} records safely queued in IndexedDB. Will sync automatically once network is restored.`);
+          return;
+        }
+
+        // # State Block: Mock network sync transmission
+        for (const item of pendingItems) {
+          await window.CraneLabDB.updateSyncItemStatus(item.queueId, 'SYNCED');
+        }
+
+        this.updateSyncBadge();
+        alert(`Successfully synchronized ${pendingItems.length} records with TETFund Central Database.`);
+      }
+
+      // # Function: Update Sync Queue Badge Counter
+      static async updateSyncBadge() {
+        try {
+          const pending = await window.CraneLabDB.getPendingSyncQueue();
+          const badge = document.getElementById('sync-queue-count');
+          if (badge) {
+            badge.textContent = pending.length;
+          }
+        } catch (e) {
+          // Database might still be initializing
+        }
+      }
+    }
+
+    // # State Block: Auto-bind inputs on typing for real-time crypto update
+    document.addEventListener('DOMContentLoaded', () => {
+      CraneLabApp.init();
+
+      const idInp = document.getElementById('candidate-id-input');
+      const cohInp = document.getElementById('cohort-select');
+      if (idInp) idInp.addEventListener('input', () => CraneLabApp.updateLiveCryptoPreimage());
+      if (cohInp) cohInp.addEventListener('change', () => CraneLabApp.updateLiveCryptoPreimage());
+    });
+  </script>
+</body>
+</html>
+

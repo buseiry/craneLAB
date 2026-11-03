@@ -1,0 +1,20 @@
+{
+  "name": "CraneLab: ASVAM-Pulse - Tower Crane Simulator",
+  "short_name": "CraneLab",
+  "description": "TETFund - Tenstar Simulator Training Initiative Offline-First ASVAM & Tower Crane Engineering Lab (ASQ Development & Training UK / SAMMAX Global Services)",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "any",
+  "theme_color": "#0f172a",
+  "background_color": "#0f172a",
+  "categories": ["education", "engineering", "simulation"],
+  "icons": [
+    {
+      "src": "./icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

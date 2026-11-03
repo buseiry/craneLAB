@@ -1,0 +1,16 @@
+# Operating System Artifacts
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor & IDE Directories
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# Temporary & Cache Artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.log
