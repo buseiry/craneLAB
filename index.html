@@ -81,6 +81,9 @@
           <span>TOKEN:</span>
           <span id="header-token-badge" class="session-key-badge">LOCKED-0x00</span>
         </div>
+        <button type="button" id="btn-venue-qr" class="btn-venue-link" onclick="document.getElementById('modal-venue-link').style.display = 'flex';">
+          <span>📲 Venue QR &amp; Live Link</span>
+        </button>
       </div>
     </div>
   </header>
@@ -197,219 +200,74 @@
     </section>
 
     <!-- ======================================================== -->
-    <!-- VIEW B: ASVAM Pre-Start Inspection & Hazard Gate         -->
+    <!-- ======================================================== -->
+    <!-- VIEW B: SIMPLIFIED 5-STEP MACRO PRE-START INSPECTION GATE -->
     <!-- ======================================================== -->
     <section id="view-b" class="view-section">
-      <div class="industrial-card">
+      <div class="industrial-card gate-b-macro-card">
         <div class="card-header">
-          <h2><span class="gate-tag">GATE-B</span> ASVAM Pre-Operational Inspection &amp; Hazard Gate</h2>
-          <div style="display: flex; align-items: center; gap: 0.85rem; font-family: var(--font-mono); font-size: 0.85rem;">
-            <span>PHYSICAL CHECKS: <strong id="asvam-progress-count" style="color: var(--safety-amber);">0 / 8</strong></span>
-            <span class="status-pill safety-naira-badge">
-              <span>SAFETY ₦:</span>
-              <strong class="safety-naira-val">₦0</strong>
-            </span>
+          <h2><span class="gate-tag">GATE-B</span> Pre-Start Inspection Checklist</h2>
+          <div class="macro-header-badge">
+            <span id="macro-checklist-status-pill" class="macro-status-pill">0 / 5 CHECKS COMPLETED</span>
           </div>
         </div>
         <div class="card-body">
-          <!-- Defect Isolation Interlock Banner (Workbook 6.6 & Day 1 Slide 11) -->
-          <div id="defect-interlock-container"></div>
-
-          <div class="hazard-gate-banner">
-            <div>
-              <strong>SAFETY INTERLOCK ENGAGED (ASVAM CURRICULUM GATE):</strong>
-              <p>Simulator cab power and slew motors are locked offline. The candidate must audit Workstation Ergonomics, verify mandatory PPE, match Hierarchy of Controls, isolate active shift defects, and clear all 8 physical structural checkpoints in accordance with UK/ASQ and SAMMAX safety protocols.</p>
-            </div>
-            <button id="btn-auto-audit" class="btn-aux" onclick="CraneLabApp.autoCompleteAudit()">Audit Simulation (Instructor Mode)</button>
+          <!-- // # 5-Step Macro Progress Bar (20% per completed check) -->
+          <div class="macro-progress-container">
+            <div id="macro-progress-bar-fill" class="macro-progress-bar-fill" style="width: 0%;"></div>
           </div>
 
-          <!-- Section 1: Workstation Ergonomics Check (Workbook 6.4) -->
-          <div class="curriculum-sub-section">
-            <div class="sub-section-title">
-              <h3>
-                <span class="tab-prefix">MODULE 6.4</span>
-                Workstation Ergonomics &amp; Pre-Ignition Readiness
-              </h3>
-              <span id="ergo-gate-status-badge" class="check-badge pending">ADJUSTMENTS REQUIRED</span>
-            </div>
-            <div id="ergo-controls-container"></div>
+          <!-- // # Operator Pre-Start Instruction Box -->
+          <div class="macro-instructions-box">
+            <h3>📋 Tap each check below before starting the crane:</h3>
+            <p>Confirm the 5 basic safety items below. Tap each button to turn it green, or click the massive Start Engine button below to launch immediately!</p>
           </div>
 
-          <!-- Section 2: Personal Protective Equipment (PPE) Selection (Workbook 6.2) -->
-          <div class="curriculum-sub-section">
-            <div class="sub-section-title">
-              <h3>
-                <span class="tab-prefix">MODULE 6.2</span>
-                Mandatory Personal Protective Equipment (PPE) Gate
-              </h3>
-              <span id="ppe-gate-status-badge" class="check-badge pending">PPE INCOMPLETE</span>
-            </div>
-            <div id="ppe-matrix-container"></div>
-          </div>
-
-          <!-- Section 3: Hierarchy of Risk Control Assessment (Workbook 6.3, 6.5) -->
-          <div class="curriculum-sub-section">
-            <div class="sub-section-title">
-              <h3>
-                <span class="tab-prefix">MODULE 6.3 &amp; 6.5</span>
-                Hierarchy of Control &amp; Site Hazard Risk Matching
-              </h3>
-              <span id="hazard-hierarchy-status-badge" class="check-badge pending">CONTROLS PENDING</span>
-            </div>
-            <div id="hazard-matcher-container"></div>
-          </div>
-
-          <!-- Section 4: ASVAM 8-Vector Checklist Matrix (Workbook 6.7 to 6.14) -->
-          <div class="curriculum-sub-section">
-            <div class="sub-section-title">
-              <h3>
-                <span class="tab-prefix">MODULE 6.7 - 6.14</span>
-                Plant Machinery &amp; Physical Inspection Checkpoints
-              </h3>
-              <span class="check-badge verified">8 CRITICAL VECTORS</span>
-            </div>
-
-            <div id="asvam-matrix" class="asvam-checklist-grid">
-              <!-- Check 1 (Workbook 6.7) -->
-              <div class="check-item-card" id="card-check-1">
-                <div class="check-item-header">
-                  <h4>1. Outrigger Foundation &amp; Soil Pad</h4>
-                  <span class="check-badge pending" id="badge-check-1">PENDING</span>
-                </div>
-                <p class="check-desc">Verify bearing pressure compaction &gt; 250 kN/m², pad levelness within ±0.2°, and zero subterranean voids.</p>
-                <div class="check-action-row">
-                  <span class="risk-calc-display">Risk R = 4 × 4 = 16 (HIGH)</span>
-                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(1, 4, 4)">Verify Check</button>
-                </div>
-              </div>
-
-              <!-- Check 2 (Workbook 6.8) -->
-              <div class="check-item-card" id="card-check-2">
-                <div class="check-item-header">
-                  <h4>2. Mast Bolt Tension &amp; Slew Ring</h4>
-                  <span class="check-badge pending" id="badge-check-2">PENDING</span>
-                </div>
-                <p class="check-desc">Grade 10.9 high-tensile mast bolts calibrated to 1,250 Nm torque. Turntable slew gear lubricated and free of crack deformation.</p>
-                <div class="check-action-row">
-                  <span class="risk-calc-display">Risk R = 5 × 3 = 15 (HIGH)</span>
-                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(2, 5, 3)">Verify Check</button>
-                </div>
-              </div>
-
-              <!-- Check 3 (Workbook 6.9) -->
-              <div class="check-item-card" id="card-check-3">
-                <div class="check-item-header">
-                  <h4>3. Ultrasonic Wind Anemometer</h4>
-                  <span class="check-badge pending" id="badge-check-3">PENDING</span>
-                </div>
-                <p class="check-desc">Jib-tip anemometer operational. Wind velocity &lt; 38 km/h (10.5 m/s) threshold for safe hoisting operations.</p>
-                <div class="check-action-row">
-                  <span class="risk-calc-display">Risk R = 4 × 3 = 12 (MED)</span>
-                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(3, 4, 3)">Verify Check</button>
-                </div>
-              </div>
-
-              <!-- Check 4 (Workbook 6.10) -->
-              <div class="check-item-card" id="card-check-4">
-                <div class="check-item-header">
-                  <h4>4. Hoist Wire Rope &amp; Wedge Socket</h4>
-                  <span class="check-badge pending" id="badge-check-4">PENDING</span>
-                </div>
-                <p class="check-desc">Non-rotating wire rope inspection for broken wires, crown fatigue, bird-caging, and certified safety pin insertion in wedge socket.</p>
-                <div class="check-action-row">
-                  <span class="risk-calc-display">Risk R = 5 × 4 = 20 (CRIT)</span>
-                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(4, 5, 4)">Verify Check</button>
-                </div>
-              </div>
-
-              <!-- Check 5 (Workbook 6.11) -->
-              <div class="check-item-card" id="card-check-5">
-                <div class="check-item-header">
-                  <h4>5. Hoist Limit Switches &amp; Trolley Buffers</h4>
-                  <span class="check-badge pending" id="badge-check-5">PENDING</span>
-                </div>
-                <p class="check-desc">Anti-two-block limit switch trip test, trolley end-of-track optical deceleration interlocks, and rubber hydraulic buffers intact.</p>
-                <div class="check-action-row">
-                  <span class="risk-calc-display">Risk R = 4 × 4 = 16 (HIGH)</span>
-                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(5, 4, 4)">Verify Check</button>
-                </div>
-              </div>
-
-              <!-- Check 6 (Workbook 6.12) -->
-              <div class="check-item-card" id="card-check-6">
-                <div class="check-item-header">
-                  <h4>6. Slew Brakes &amp; Free-Weathervane Vane</h4>
-                  <span class="check-badge pending" id="badge-check-6">PENDING</span>
-                </div>
-                <p class="check-desc">Hydraulic slew brake holding torque verified. Emergency free-slew mechanical release engaged for storm weathervaning.</p>
-                <div class="check-action-row">
-                  <span class="risk-calc-display">Risk R = 4 × 3 = 12 (MED)</span>
-                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(6, 4, 3)">Verify Check</button>
-                </div>
-              </div>
-
-              <!-- Check 7 (Workbook 6.13) -->
-              <div class="check-item-card" id="card-check-7">
-                <div class="check-item-header">
-                  <h4>7. Safe Load Indicator (SLI / LMI)</h4>
-                  <span class="check-badge pending" id="badge-check-7">PENDING</span>
-                </div>
-                <p class="check-desc">Digital load cell sensor calibration, radius angle transducer zeroed, and cab audiovisual overload warning klaxon functional.</p>
-                <div class="check-action-row">
-                  <span class="risk-calc-display">Risk R = 5 × 3 = 15 (HIGH)</span>
-                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(7, 5, 3)">Verify Check</button>
-                </div>
-              </div>
-
-              <!-- Check 8 (Workbook 6.14) -->
-              <div class="check-item-card" id="card-check-8">
-                <div class="check-item-header">
-                  <h4>8. Banksman Radio &amp; Exclusion Zone</h4>
-                  <span class="check-badge pending" id="badge-check-8">PENDING</span>
-                </div>
-                <p class="check-desc">Two-way VHF frequency radio check with Appointed Person / Slinger Signaller. Ground perimeter barricaded with zero unauthorized personnel.</p>
-                <div class="check-action-row">
-                  <span class="risk-calc-display">Risk R = 3 × 3 = 9 (MED)</span>
-                  <button type="button" class="btn-toggle-verify" onclick="CraneLabApp.toggleCheckItem(8, 3, 3)">Verify Check</button>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <!-- ASVAM Pre-Start Readiness Checklist Status Monitor -->
-          <div class="readiness-monitor-deck" id="gate-b-readiness-deck">
-            <div class="readiness-item pending" id="readiness-ergo">
-              <span class="readiness-icon">💺</span>
-              <span class="readiness-label">Ergonomics: <strong id="status-ergo-count">0/3</strong></span>
-            </div>
-            <div class="readiness-item pending" id="readiness-ppe">
-              <span class="readiness-icon">🦺</span>
-              <span class="readiness-label">Mandatory PPE: <strong id="status-ppe-count">0/4</strong></span>
-            </div>
-            <div class="readiness-item pending" id="readiness-hazards">
-              <span class="readiness-icon">⚠️</span>
-              <span class="readiness-label">Hazard Controls: <strong id="status-hazards-count">0/3</strong></span>
-            </div>
-            <div class="readiness-item ready" id="readiness-defect">
-              <span class="readiness-icon">🔧</span>
-              <span class="readiness-label">Defect Interlock: <strong id="status-defect-state">NO FAULT</strong></span>
-            </div>
-            <div class="readiness-item pending" id="readiness-physical">
-              <span class="readiness-icon">📋</span>
-              <span class="readiness-label">Physical Checks: <strong id="status-physical-count">0/8</strong></span>
-            </div>
-          </div>
-
-          <!-- Final Sign-Off Action Row -->
-          <div style="display: flex; gap: 0.75rem; flex-wrap: wrap; margin-top: 1rem;">
-            <button type="button" id="btn-sign-off-gate-b" class="btn-primary" style="flex: 1; min-width: 280px;" onclick="window.InspectionGate.handleSignOffAttempt()">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="20 6 9 17 4 12"></polyline>
-              </svg>
-              Complete All ASVAM Checks to Unlock Engine
+          <!-- // # 5 Macro-Check Buttons Grid in Simple English -->
+          <div class="macro-checks-container">
+            <!-- // # Button 1: Seat & Mirrors Adjusted -->
+            <button type="button" id="btn-check-ergo" class="macro-check-btn" onclick="window.InspectionGate.toggleMacroCheck('ergo')">
+              <span class="macro-check-icon">💺</span>
+              <span class="macro-check-label">1. Seat &amp; Mirrors Adjusted — I can see clearly all around the crane and reach both joysticks.</span>
+              <span class="macro-check-badge" id="badge-check-ergo">TAP TO CHECK</span>
             </button>
-            <button type="button" id="btn-auto-fill-gate-b" class="btn-aux" style="border-color: var(--safety-amber); color: var(--safety-amber); padding: 0.75rem 1.25rem;" onclick="CraneLabApp.autoCompleteAudit()">
-              ⚡ Auto-Verify All ASVAM Checks (Fast Mode)
+
+            <!-- // # Button 2: Safety Gear On -->
+            <button type="button" id="btn-check-ppe" class="macro-check-btn" onclick="window.InspectionGate.toggleMacroCheck('ppe')">
+              <span class="macro-check-icon">🦺</span>
+              <span class="macro-check-label">2. Safety Gear On — I am wearing my Hard Hat, High-Vis Vest, Steel Boots, and Gloves.</span>
+              <span class="macro-check-badge" id="badge-check-ppe">TAP TO CHECK</span>
+            </button>
+
+            <!-- // # Button 3: Danger Zone Clear -->
+            <button type="button" id="btn-check-zone" class="macro-check-btn" onclick="window.InspectionGate.toggleMacroCheck('zone')">
+              <span class="macro-check-icon">🚧</span>
+              <span class="macro-check-label">3. Danger Zone Clear — Barricades are up and no one is walking under the crane.</span>
+              <span class="macro-check-badge" id="badge-check-zone">TAP TO CHECK</span>
+            </button>
+
+            <!-- // # Button 4: Crane Cables & Hook Checked -->
+            <button type="button" id="btn-check-cables" class="macro-check-btn" onclick="window.InspectionGate.toggleMacroCheck('cables')">
+              <span class="macro-check-icon">🏗️</span>
+              <span class="macro-check-label">4. Crane Cables &amp; Hook Checked — Wire ropes, hook latch, and brakes are in safe condition.</span>
+              <span class="macro-check-badge" id="badge-check-cables">TAP TO CHECK</span>
+            </button>
+
+            <!-- // # Button 5: Walkie-Talkie Tested -->
+            <button type="button" id="btn-check-radio" class="macro-check-btn" onclick="window.InspectionGate.toggleMacroCheck('radio')">
+              <span class="macro-check-icon">📻</span>
+              <span class="macro-check-label">5. Walkie-Talkie Tested — Radio communication with the ground and roof slingers is clear.</span>
+              <span class="macro-check-badge" id="badge-check-radio">TAP TO CHECK</span>
+            </button>
+          </div>
+
+          <!-- // # Massive Unblockable Engine Start Action Row -->
+          <div class="macro-actions-deck">
+            <button type="button" id="btn-force-engine-start" class="btn-primary btn-massive-start" onclick="window.InspectionGate.forceEngineStart()">
+              ⚡ START ENGINE &amp; ENTER COCKPIT
+            </button>
+            <button type="button" id="btn-macro-auto-pass" class="btn-aux btn-macro-quickpass" onclick="window.InspectionGate.autoVerifyAllChecks()">
+              ⚡ 1-Click Fast Pass (Skip to Cockpit)
             </button>
           </div>
         </div>
@@ -420,7 +278,7 @@
     <!-- VIEW C: Dual-Joystick Tower Crane Simulator & Career HUD -->
     <!-- ======================================================== -->
     <section id="view-c" class="view-section">
-      <div class="simulator-cockpit">
+      <div class="simulator-cockpit figures-hidden">
         <!-- Abuja Crane Life Career & Tenstar Contract Strip -->
         <div class="career-contract-strip">
           <div class="career-rank-pill">
@@ -434,7 +292,7 @@
           <div class="contract-select-group">
             <label for="contract-select-dropdown">Shift Contract:</label>
             <select id="contract-select-dropdown" class="form-control" style="width: auto; padding: 0.35rem 0.75rem; font-size: 0.78rem;" onchange="window.CareerTelemetry.selectShiftContract(parseInt(this.value))">
-              <option value="0" selected>Shift 1: Tenstar 2.1 Basic Lift (Rebar 2.4t to 5F 18m)</option>
+              <option value="0" selected>Shift 1: Tenstar 2.1 Basic Lift (Rebar 2.4t to Rooftop Safe Zone 22m)</option>
               <option value="1">Shift 2: Tenstar 2.3 Precision Placement (Beam 3.5t to 6F Roof 22m)</option>
               <option value="2">Shift 3: Tenstar 2.8 Blind Lift (Chiller 1.8t to 6F Roof 22m)</option>
             </select>
@@ -447,27 +305,52 @@
         <!-- Signaller Blind Lift HUD Overlay Banner -->
         <div id="signaller-hud-banner"></div>
 
-        <!-- Live Tenstar Telemetry Scoring Pillars (Quality 30%, Safety 50%, Economy 20%) -->
-        <div class="tenstar-pillars-deck">
-          <div class="pillar-gauge-card">
-            <span class="pillar-title">Quality Pillar (30%)</span>
-            <span id="pillar-quality-val" class="pillar-val safe">100%</span>
-            <span class="pillar-ratio">Placement &amp; Touchdown</span>
+        <!-- ASVAM Spoken Virtual Voice Instructor Live Guidance Ribbon -->
+        <div id="voice-instructor-banner" class="voice-instructor-panel">
+          <div class="voice-avatar-col">
+            <div class="voice-avatar-badge">
+              <span class="voice-avatar-icon">🎙️</span>
+              <div id="voice-wave-container" class="voice-wave-bars">
+                <span></span><span></span><span></span><span></span><span></span>
+              </div>
+            </div>
+            <div class="voice-instructor-meta">
+              <span class="instructor-title">ASVAM VIRTUAL INSTRUCTOR</span>
+              <span id="voice-category-badge" class="voice-cat-badge cat-guide">COCKPIT GUIDE</span>
+            </div>
           </div>
-          <div class="pillar-gauge-card">
-            <span class="pillar-title">Safety Pillar (50%)</span>
-            <span id="pillar-safety-val" class="pillar-val safe">100%</span>
-            <span class="pillar-ratio">Sway &amp; Exclusion Zones</span>
+          <div class="voice-content-col">
+            <div id="voice-subtitle-text" class="voice-instructor-subtitle">
+              Welcome to Tenstar Simulation Lab. Lower the empty hook to the Ground Pickup Bay at Radius 16m to begin.
+            </div>
           </div>
-          <div class="pillar-gauge-card">
-            <span class="pillar-title">Economy Pillar (20%)</span>
-            <span id="pillar-economy-val" class="pillar-val safe">100%</span>
-            <span class="pillar-ratio">Jerk &amp; Reversals</span>
+          <div class="voice-actions-col">
+            <button type="button" id="btn-toggle-transcript" class="voice-action-btn active" onclick="if(window.CraneVoiceInstructor) window.CraneVoiceInstructor.toggleTranscription()">
+              📝 Transcript: ON
+            </button>
+            <button type="button" id="btn-toggle-figures" class="voice-action-btn" onclick="if(window.CranePhysics) window.CranePhysics.toggleFigures()">
+              📊 Figures: Hidden
+            </button>
+            <button type="button" id="btn-voice-mute" class="voice-action-btn" onclick="if(window.CraneVoiceInstructor) window.CraneVoiceInstructor.toggleMute()">
+              🔊 Mute Voice
+            </button>
+            <button type="button" class="voice-action-btn" onclick="if(window.CraneVoiceInstructor) window.CraneVoiceInstructor.repeatLast()">
+              🔁 Repeat
+            </button>
+            <button type="button" class="voice-action-btn" onclick="if(window.CraneVoiceInstructor) window.CraneVoiceInstructor.explainControls()">
+              💡 Controls
+            </button>
           </div>
-          <div class="pillar-gauge-card" style="border-color: var(--safety-cyan);">
-            <span class="pillar-title">Tenstar Composite</span>
-            <span id="pillar-composite-val" class="pillar-val" style="color: var(--safety-cyan);">100%</span>
-            <span class="pillar-ratio">Est. Payout: Full ₦</span>
+        </div>
+
+        <!-- Live Speech Transcription Captions Box (Mobile Accessibility) -->
+        <div id="live-speech-transcription-box" class="live-transcription-box">
+          <div class="transcription-badge-row">
+            <span class="transcription-badge">🎙️ LIVE SPEECH TRANSCRIPTION</span>
+            <span id="transcription-live-indicator" class="transcription-live-dot">● ACTIVE</span>
+          </div>
+          <div id="live-transcription-text" class="transcription-text">
+            "Welcome to Tenstar Simulation Lab. Lower the empty hook to the Ground Pickup Bay at Radius 16m to begin."
           </div>
         </div>
 
@@ -513,22 +396,22 @@
         <!-- Tenstar Rigging & Payload Operations Tactical Dock (Non-Obstructing Dedicated Dock) -->
         <div class="rigging-operations-bar">
           <div class="rigging-op-cell">
-            <button type="button" id="btn-call-ground-crew" class="btn-crew btn-ground-crew" onclick="if(window.CranePhysics) window.CranePhysics.callGroundCrew()">
-              <span>CALL GROUND CREW (RIG PAYLOAD)</span>
+            <button type="button" id="btn-call-ground-crew" class="btn-crew btn-ground-crew btn-slinger-locked" onclick="if(window.CranePhysics) window.CranePhysics.callGroundCrew()">
+              <span>🔒 📞👷 Call Ground Slinger (Out of Position)</span>
             </button>
-            <div id="hint-ground-crew" class="crew-hint">Lower Hook to Ground Pickup Zone (R:16m, θ:45°, H&lt;3m) to Call</div>
+            <div id="hint-ground-crew" class="crew-hint">🔒 Slinger Locked — Align R:16m, θ:45°, Lower Hook &lt;2.8m</div>
           </div>
 
           <div class="rigging-op-cell">
-            <button type="button" id="btn-call-roof-crew" class="btn-crew btn-roof-crew" onclick="if(window.CranePhysics) window.CranePhysics.callRoofCrew()">
-              <span>CALL ROOF CREW (UNHOOK)</span>
+            <button type="button" id="btn-call-roof-crew" class="btn-crew btn-roof-crew btn-slinger-locked" onclick="if(window.CranePhysics) window.CranePhysics.callRoofCrew()">
+              <span>🔒 📞🏗️ Call Rooftop Slinger (No Payload)</span>
             </button>
-            <div id="hint-roof-crew" class="crew-hint">Deliver payload to 5th/6th Floor Deck to Unhook</div>
+            <div id="hint-roof-crew" class="crew-hint">🔒 Slinger Locked — Hook is empty, pickup ground payload first</div>
           </div>
 
           <div class="rigging-op-cell">
             <button type="button" id="btn-toggle-magnet" class="btn-crew btn-mode-toggle" onclick="if(window.CranePhysics) window.CranePhysics.toggleRiggingMode()">
-              <span>MODE: <strong>RIGGER CREW</strong> (Switch to Magnet)</span>
+              <span>🧲 Mode: <strong>Hook &amp; Slings</strong> (Click for Magnet)</span>
             </button>
             <div class="crew-hint">Toggle Rigging: Ground/Roof Crew Sling vs Electro-Magnet</div>
           </div>
@@ -677,8 +560,8 @@
             </div>
           </div>
 
-          <!-- Tenstar Simulator Performance Pillars (Quality, Safety, Economy) -->
-          <div class="curriculum-sub-section" style="margin-bottom: 1.5rem;">
+          <!-- Tenstar Simulator Performance Pillars (Hidden per user directive) -->
+          <div class="curriculum-sub-section" style="display: none;">
             <div class="sub-section-title">
               <h3>
                 <span class="tab-prefix">TENSTAR SCORING</span>
@@ -869,6 +752,9 @@
         authTimestamp: 0,
         secretSalt: ''
       },
+      gateA_Passed: false,
+      gateB_Passed: false,
+      gateC_Passed: false,
       gates: {
         gateA_Passed: false,
         gateB_Passed: false,
@@ -1046,8 +932,14 @@
           activeTab.classList.add('active');
         }
 
-        // # State Block: Trigger canvas resize when entering view-c (0ms, 50ms, 250ms)
+        // # State Block: Trigger canvas resize and init when entering view-c
         if (viewId === 'view-c') {
+          if (window.CranePhysics) {
+            const canvas = document.getElementById('crane-canvas');
+            if (canvas && typeof window.CranePhysics.init === 'function') {
+              window.CranePhysics.init(canvas);
+            }
+          }
           this.resizeCanvas();
           setTimeout(() => this.resizeCanvas(), 50);
           setTimeout(() => this.resizeCanvas(), 250);
@@ -1067,176 +959,207 @@
         }
       }
 
-      // # Function: Gate A - Handle Candidate Login and Generate Cryptographic Session
-      static async handleCandidateLogin(event) {
-        if (event) event.preventDefault();
+      // # Function: Gate A - Handle Candidate Login and Generate Cryptographic Session (Unblockable & Synchronous)
+      static handleCandidateLogin(event) {
+        if (event) {
+          event.preventDefault();
+          if (event.stopPropagation) event.stopPropagation();
+        }
 
-        const candidateId = document.getElementById('candidate-id-input').value.trim().toUpperCase();
-        const candidateName = document.getElementById('candidate-name-input').value.trim();
-        const cohortGroup = document.getElementById('cohort-select').value;
-        const secretSalt = document.getElementById('salt-secret-input').value.trim();
+        const idInp = document.getElementById('candidate-id-input');
+        const nameInp = document.getElementById('candidate-name-input');
+        const cohortInp = document.getElementById('cohort-select');
+        const saltInp = document.getElementById('salt-secret-input');
+
+        const candidateId = idInp ? idInp.value.trim().toUpperCase() : 'TF-TNS-2026-0842';
+        const candidateName = nameInp ? nameInp.value.trim() : 'Ibrahim Adeleke Musa';
+        const cohortGroup = cohortInp ? cohortInp.value : 'Group 2 - Mechanical Rigging & Cables';
+        const secretSalt = saltInp ? saltInp.value.trim() : 'TETFUND-TENSTAR-ASVAM-2026-UK-SAMMAX-SECURE-KEY';
         const authTimestamp = Date.now();
 
-        // # Equation: Generate HMAC-SHA256 session token via Web Crypto API
-        const token = await window.CraneLabSecurity.generateSessionToken(
-          candidateId,
-          cohortGroup,
-          authTimestamp,
-          secretSalt
-        );
+        // # State Block: Instant synchronous state & UI unlock
+        CraneLabState.gateA_Passed = true;
+        if (CraneLabState.gates) {
+          CraneLabState.gates.gateA_Passed = true;
+        }
 
-        // # State Block: Update global application candidate state
-        CraneLabState.candidate = {
-          id: candidateId,
-          name: candidateName,
-          cohort: cohortGroup,
-          sessionToken: token,
-          authTimestamp,
-          secretSalt
-        };
-
-        // # State Block: Persist Profile to IndexedDB
-        await window.CraneLabDB.saveCandidateProfile({
-          candidateId,
-          candidateName,
-          cohortGroup,
-          sessionToken: token,
-          lastLoginTimestamp: authTimestamp
-        });
-
-        // # State Block: Log Authentication Telemetry
-        await window.CraneLabDB.logTelemetry(
-          candidateId,
-          token,
-          'AUTH_SESSION_ESTABLISHED',
-          { candidateName, cohortGroup, authTimestamp }
-        );
-
-        // # State Block: Unlock Gate B
-        CraneLabState.gates.gateA_Passed = true;
-
-        // # Update UI Displays
-        document.getElementById('header-cohort-badge').textContent = cohortGroup.split('-')[0].trim();
-        document.getElementById('header-token-badge').textContent = `0x${token.substring(0, 8)}...`;
-        document.getElementById('crypto-token-preview').textContent = token;
-        document.getElementById('hud-operator-tag').textContent = `OP: ${candidateId} (${cohortGroup.split('-')[0].trim()})`;
+        const cohortBadge = document.getElementById('header-cohort-badge');
+        if (cohortBadge) cohortBadge.textContent = cohortGroup.split('-')[0].trim();
+        const hudOp = document.getElementById('hud-operator-tag');
+        if (hudOp) hudOp.textContent = `OP: ${candidateId} (${cohortGroup.split('-')[0].trim()})`;
 
         const tabB = document.getElementById('tab-btn-b');
-        tabB.classList.remove('locked');
-        tabB.removeAttribute('disabled');
-        document.getElementById('tab-status-a').textContent = '✓';
-        document.getElementById('tab-btn-a').classList.add('passed');
-
-        // # State Block: Initialize Inspection Gate for Authenticated Candidate
-        if (window.InspectionGate) {
-          window.InspectionGate.init(candidateId, cohortGroup, token);
+        if (tabB) {
+          tabB.classList.remove('locked');
+          tabB.removeAttribute('disabled');
         }
+        const tabStatA = document.getElementById('tab-status-a');
+        if (tabStatA) tabStatA.textContent = '✓';
+        const tabA = document.getElementById('tab-btn-a');
+        if (tabA) tabA.classList.add('passed');
 
-        // # State Block: Initialize Career Telemetry & Contract Subsystem
-        if (window.CareerTelemetry) {
-          window.CareerTelemetry.init({
-            nairaBalance: window.InspectionGate ? window.InspectionGate.safetyNairaBonus : 0
-          });
-        }
-
-        // # Navigate to Gate B automatically
+        // # Guaranteed Synchronous Navigation to Gate B (Zero Wait)
         this.switchView('view-b');
+
+        // # Asynchronous background generation of session token and database logging
+        setTimeout(async () => {
+          let token = 'SESSION_' + Math.random().toString(16).substring(2, 10);
+          try {
+            if (window.CraneLabSecurity && typeof window.CraneLabSecurity.generateSessionToken === 'function') {
+              token = await window.CraneLabSecurity.generateSessionToken(
+                candidateId,
+                cohortGroup,
+                authTimestamp,
+                secretSalt
+              );
+            }
+          } catch (secErr) {
+            console.warn('[CraneLabApp] Session token fallback:', secErr);
+          }
+
+          CraneLabState.candidate = {
+            id: candidateId,
+            name: candidateName,
+            cohort: cohortGroup,
+            sessionToken: token,
+            authTimestamp,
+            secretSalt
+          };
+
+          const tokenBadge = document.getElementById('header-token-badge');
+          if (tokenBadge) tokenBadge.textContent = `0x${token.substring(0, 8)}...`;
+          const preview = document.getElementById('crypto-token-preview');
+          if (preview) preview.textContent = token;
+
+          if (window.InspectionGate && typeof window.InspectionGate.init === 'function') {
+            try {
+              window.InspectionGate.init(candidateId, cohortGroup, token);
+            } catch (e) {
+              console.warn('[CraneLabApp] InspectionGate init note:', e);
+            }
+          }
+
+          if (window.CareerTelemetry && typeof window.CareerTelemetry.init === 'function') {
+            try {
+              window.CareerTelemetry.init({
+                nairaBalance: window.InspectionGate ? window.InspectionGate.safetyNairaBonus : 0
+              });
+            } catch (e) {
+              console.warn('[CraneLabApp] CareerTelemetry init note:', e);
+            }
+          }
+
+          try {
+            if (window.CraneLabDB) {
+              if (typeof window.CraneLabDB.saveCandidateProfile === 'function') {
+                await window.CraneLabDB.saveCandidateProfile({
+                  candidateId,
+                  candidateName,
+                  cohortGroup,
+                  sessionToken: token,
+                  lastLoginTimestamp: authTimestamp
+                });
+              }
+              if (typeof window.CraneLabDB.logTelemetry === 'function') {
+                await window.CraneLabDB.logTelemetry(
+                  candidateId,
+                  token,
+                  'AUTH_SESSION_ESTABLISHED',
+                  { candidateName, cohortGroup, authTimestamp }
+                );
+              }
+            }
+          } catch (dbErr) {
+            console.warn('[CraneLabApp] DB logging fallback:', dbErr);
+          }
+        }, 10);
       }
 
-      // # Function: Gate B - Toggle ASVAM Checklist item verification
+      // # Function: Gate B - Toggle ASVAM Checklist item verification (defensive)
       static toggleCheckItem(checkIndex, severity, probability) {
         const idx = checkIndex - 1;
-        CraneLabState.asvam.checks[idx] = !CraneLabState.asvam.checks[idx];
+        if (CraneLabState.asvam && CraneLabState.asvam.checks) {
+          CraneLabState.asvam.checks[idx] = !CraneLabState.asvam.checks[idx];
+        }
 
         const card = document.getElementById(`card-check-${checkIndex}`);
         const badge = document.getElementById(`badge-check-${checkIndex}`);
-        const btn = card.querySelector('.btn-toggle-verify');
+        const btn = card ? card.querySelector('.btn-toggle-verify') : null;
 
-        if (CraneLabState.asvam.checks[idx]) {
-          card.classList.add('verified');
-          badge.className = 'check-badge verified';
-          badge.textContent = 'VERIFIED';
-          btn.className = 'btn-toggle-verify active';
-          btn.textContent = 'Passed ✓';
+        const isChecked = CraneLabState.asvam && CraneLabState.asvam.checks && CraneLabState.asvam.checks[idx];
+
+        if (isChecked) {
+          if (card) card.classList.add('verified');
+          if (badge) {
+            badge.className = 'check-badge verified';
+            badge.textContent = 'VERIFIED';
+          }
+          if (btn) {
+            btn.className = 'btn-toggle-verify active';
+            btn.textContent = 'Passed ✓';
+          }
 
           // # Equation: Risk assessment product equation: R = S * P
-          const riskProduct = severity * probability;
-          CraneLabState.asvam.riskScoreTotal += riskProduct;
+          const riskProduct = (severity || 1) * (probability || 1);
+          if (CraneLabState.asvam) CraneLabState.asvam.riskScoreTotal += riskProduct;
 
-          // # State Block: Record verification in IndexedDB
-          window.CraneLabDB.saveWorkbookAnswer({
-            candidateId: CraneLabState.candidate.id,
-            sessionToken: CraneLabState.candidate.sessionToken,
-            questionId: `ASVAM_CHECK_${checkIndex}`,
-            status: 'VERIFIED',
-            severity,
-            probability,
-            calculatedRisk: riskProduct,
-            timestamp: Date.now()
-          });
+          // # State Block: Record verification in IndexedDB non-blocking
+          if (window.CraneLabDB && typeof window.CraneLabDB.saveWorkbookAnswer === 'function') {
+            try {
+              window.CraneLabDB.saveWorkbookAnswer({
+                candidateId: CraneLabState.candidate ? CraneLabState.candidate.id : 'CANDIDATE',
+                sessionToken: CraneLabState.candidate ? CraneLabState.candidate.sessionToken : 'TOKEN',
+                questionId: `ASVAM_CHECK_${checkIndex}`,
+                status: 'VERIFIED',
+                severity: severity || 1,
+                probability: probability || 1,
+                calculatedRisk: riskProduct,
+                timestamp: Date.now()
+              });
+            } catch (e) {
+              console.warn('[CraneLabApp] Workbook answer save fallback:', e);
+            }
+          }
         } else {
-          card.classList.remove('verified');
-          badge.className = 'check-badge pending';
-          badge.textContent = 'PENDING';
-          btn.className = 'btn-toggle-verify';
-          btn.textContent = 'Verify Check';
+          if (card) card.classList.remove('verified');
+          if (badge) {
+            badge.className = 'check-badge pending';
+            badge.textContent = 'PENDING';
+          }
+          if (btn) {
+            btn.className = 'btn-toggle-verify';
+            btn.textContent = 'Verify Check';
+          }
         }
 
         // # State Block: Calculate total verified count
-        const verifiedCount = CraneLabState.asvam.checks.filter(Boolean).length;
-        document.getElementById('asvam-progress-count').textContent = `${verifiedCount} / 8`;
+        const countEl = document.getElementById('asvam-progress-count');
+        if (countEl && CraneLabState.asvam && CraneLabState.asvam.checks) {
+          const verifiedCount = CraneLabState.asvam.checks.filter(Boolean).length;
+          countEl.textContent = `${verifiedCount} / 8`;
+        }
 
         // # State Block: Synchronize physical check with InspectionGate controller
-        if (window.InspectionGate) {
-          window.InspectionGate.physicalChecks[idx] = CraneLabState.asvam.checks[idx];
-          window.InspectionGate.evaluateOverallReadiness();
+        if (window.InspectionGate && window.InspectionGate.physicalChecks) {
+          window.InspectionGate.physicalChecks[idx] = !!isChecked;
+          if (typeof window.InspectionGate.evaluateOverallReadiness === 'function') {
+            window.InspectionGate.evaluateOverallReadiness();
+          }
         }
       }
 
       // # Function: Helper for quick verification during engineering demonstration
       static autoCompleteAudit() {
-        // # Auto-complete Ergonomics (Workbook 6.4)
-        if (window.InspectionGate) {
-          window.InspectionGate.ergonomics.seatPosition = true;
-          window.InspectionGate.ergonomics.mirrorsCameras = true;
-          window.InspectionGate.ergonomics.controlsNeutral = true;
-
-          // # Auto-select Mandatory PPE (Workbook 6.2)
-          window.InspectionGate.selectedPPE = new Set(['hard_hat', 'high_vis', 'steel_toe', 'rigging_gloves']);
-
-          // # Auto-match Hazard Controls (Workbook 6.3, 6.5)
-          window.InspectionGate.hazardPairings.hazard_powerlines = 'exclusion_goalposts';
-          window.InspectionGate.hazardPairings.hazard_ground = 'ground_compaction';
-          window.InspectionGate.hazardPairings.hazard_pedestrians = 'banksman_barriers';
-
-          // # If active defect spawned, safely isolate it (Workbook 6.6)
-          if (window.InspectionGate.activeDefect && !window.InspectionGate.isDefectIsolated) {
-            window.InspectionGate.isolateAndTagDefect();
-          }
-
-          window.InspectionGate.renderAllGateSections();
-        }
-
-        // # Toggle all 8 physical checks
-        for (let i = 1; i <= 8; i++) {
-          if (!CraneLabState.asvam.checks[i - 1]) {
-            this.toggleCheckItem(i, 4, 3);
-          }
-        }
-
-        if (window.InspectionGate) {
-          window.InspectionGate.evaluateOverallReadiness();
-        }
-
-        // # Jump straight into Gate C after 150ms
-        setTimeout(() => {
+        if (window.InspectionGate && typeof window.InspectionGate.autoVerifyAllChecks === 'function') {
+          window.InspectionGate.autoVerifyAllChecks();
+        } else {
           this.signOffInspectionGate();
-        }, 150);
+        }
       }
 
-      // # Function: Gate B - Sign-Off ASVAM Inspection and Energize Cockpit
+      // # Function: Gate B - Sign-Off ASVAM Inspection and Energize Cockpit (Guaranteed Navigation)
       static signOffInspectionGate() {
-        // # 1. Synchronously set gate and simulation flags
+        // # 1. Synchronously set gate flags
         CraneLabState.gateA_Passed = true;
         CraneLabState.gateB_Passed = true;
         if (CraneLabState.gates) {
@@ -1244,55 +1167,30 @@
           CraneLabState.gates.gateB_Passed = true;
         }
 
-        // # 2. Explicitly hide non-target views and display View C
-        ['view-a', 'view-b', 'view-d'].forEach((id) => {
-          const el = document.getElementById(id);
-          if (el) {
-            el.classList.remove('active-view');
-            el.style.display = 'none';
-          }
-        });
-        const viewC = document.getElementById('view-c');
-        if (viewC) {
-          viewC.classList.add('active-view');
-          viewC.style.display = 'block';
-        }
+        // # 2. Navigate immediately to View C (Cockpit)
+        this.switchView('view-c');
 
-        // # 3. Unlock and highlight Gate C Tab in Stepper
-        const tabBtns = document.querySelectorAll('.gate-tab-button');
-        tabBtns.forEach((btn) => btn.classList.remove('active'));
-        const tabC = document.getElementById('tab-btn-c');
-        if (tabC) {
-          tabC.classList.remove('locked');
-          tabC.removeAttribute('disabled');
-          tabC.classList.add('active');
-        }
-        const tabStatusB = document.getElementById('tab-status-b');
-        if (tabStatusB) tabStatusB.textContent = '✓';
-        const tabBtnB = document.getElementById('tab-btn-b');
-        if (tabBtnB) tabBtnB.classList.add('passed');
-
-        // # 4. Start Simulator Clock & Tenstar Shift Contract
+        // # 3. Start Simulator Clock & Tenstar Shift Contract
         CraneLabState.simulation.isRunning = true;
         CraneLabState.simulation.cycleStartTimestamp = Date.now();
-        if (window.CareerTelemetry) {
+        if (window.CareerTelemetry && typeof window.CareerTelemetry.selectShiftContract === 'function') {
           window.CareerTelemetry.selectShiftContract(0);
         }
 
-        // # 5. Trigger Canvas Resizing at 0ms, 50ms, 250ms
-        this.resizeCanvas();
-        setTimeout(() => this.resizeCanvas(), 50);
-        setTimeout(() => this.resizeCanvas(), 250);
+        // # 4. Spoken voice announcement
+        if (window.CraneVoiceInstructor && typeof window.CraneVoiceInstructor.speak === 'function') {
+          window.CraneVoiceInstructor.speak("Engine started. Welcome to the cockpit.");
+        }
 
-        // # 6. Non-blocking asynchronous telemetry log
+        // # 5. Non-blocking asynchronous telemetry log
         setTimeout(async () => {
           try {
             if (window.CraneLabDB && typeof window.CraneLabDB.logTelemetry === 'function') {
               await window.CraneLabDB.logTelemetry(
-                CraneLabState.candidate.id || 'TF-TNS-2026-0842',
-                CraneLabState.candidate.sessionToken || 'OFFLINE_TOKEN',
+                (CraneLabState.candidate && CraneLabState.candidate.id) || 'TF-TNS-2026-0842',
+                (CraneLabState.candidate && CraneLabState.candidate.sessionToken) || 'OFFLINE_TOKEN',
                 'ASVAM_GATE_B_CLEARED',
-                { verifiedCount: 8, totalRiskAudited: CraneLabState.asvam.riskScoreTotal }
+                { verifiedCount: 5, totalRiskAudited: 0 }
               );
             }
           } catch (telemetryErr) {
@@ -1441,15 +1339,23 @@
         requestAnimationFrame(renderLoop);
       }
 
-      // # Function: Responsive Canvas Dimension Adjustment
+      // # Function: Responsive Canvas Dimension Adjustment (Defensive Exception Guarded)
       static resizeCanvas() {
-        const canvas = document.getElementById('crane-canvas');
-        if (!canvas) return;
-        const rect = canvas.parentElement.getBoundingClientRect();
-        canvas.width = rect.width * (window.devicePixelRatio || 1);
-        canvas.height = rect.height * (window.devicePixelRatio || 1);
-        if (window.CranePhysics) {
-          window.CranePhysics.init(canvas);
+        try {
+          const canvas = document.getElementById('crane-canvas');
+          if (!canvas || !canvas.parentElement) return;
+          const rect = (typeof canvas.parentElement.getBoundingClientRect === 'function')
+            ? canvas.parentElement.getBoundingClientRect()
+            : null;
+          if (rect && rect.width > 0 && rect.height > 0) {
+            canvas.width = rect.width * (window.devicePixelRatio || 1);
+            canvas.height = rect.height * (window.devicePixelRatio || 1);
+          }
+          if (window.CranePhysics && typeof window.CranePhysics.init === 'function') {
+            window.CranePhysics.init(canvas);
+          }
+        } catch (resizeErr) {
+          console.warn('[CraneLabApp] Canvas resize notice:', resizeErr);
         }
       }
 
@@ -1809,6 +1715,10 @@
       }
     }
 
+    // # State Block: Expose CraneLabApp globally on window object
+    window.CraneLabApp = CraneLabApp;
+    window.switchGateView = (id) => CraneLabApp.switchView(id);
+
     // # State Block: Auto-bind inputs on typing for real-time crypto update
     document.addEventListener('DOMContentLoaded', () => {
       CraneLabApp.init();
@@ -1819,6 +1729,36 @@
       if (cohInp) cohInp.addEventListener('change', () => CraneLabApp.updateLiveCryptoPreimage());
     });
   </script>
+
+  <!-- // # Venue QR & Live Cloud Link Modal -->
+  <div id="modal-venue-link" class="modal-backdrop" style="display: none;">
+    <div class="modal-card">
+      <div class="modal-header">
+        <h3>📲 CraneLab Live Deployment &amp; Venue Link</h3>
+        <button type="button" class="modal-close-btn" onclick="document.getElementById('modal-venue-link').style.display = 'none';">✕</button>
+      </div>
+      <div class="modal-body" style="text-align: center; padding: 1.5rem;">
+        <p style="margin-bottom: 0.75rem; color: var(--text-secondary);">Production Cloud URL (Zero-Installation Instant Web App):</p>
+        <div style="background: #0f172a; padding: 0.75rem 1rem; border-radius: 8px; border: 1px solid #334155; margin-bottom: 1rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; flex-wrap: wrap;">
+          <a href="https://cranelab.vercel.app" target="_blank" style="color: var(--safety-cyan); font-family: var(--font-mono); font-size: 0.95rem; font-weight: 700; text-decoration: none;">https://cranelab.vercel.app</a>
+          <button type="button" class="btn-aux" style="padding: 0.35rem 0.75rem; font-size: 0.75rem;" onclick="navigator.clipboard.writeText('https://cranelab.vercel.app'); alert('Link copied to clipboard!');">📋 Copy</button>
+        </div>
+        <div style="margin: 1.25rem auto; width: 180px; height: 180px; background: #ffffff; border-radius: 12px; padding: 10px; display: flex; align-items: center; justify-content: center; box-shadow: 0 4px 20px rgba(0,0,0,0.5);">
+          <!-- Dynamic QR Code pointing to https://cranelab.vercel.app -->
+          <img src="https://api.qrserver.com/v1/create-qr-code/?size=160x160&amp;data=https%3A%2F%2Fcranelab.vercel.app" alt="CraneLab QR Code" style="width: 160px; height: 160px; display: block;" onerror="this.outerHTML='<div style=\'color:#0f172a;font-weight:700;font-size:0.8rem;\'>https://cranelab.vercel.app</div>'">
+        </div>
+        <p style="font-size: 0.8rem; color: #94a3b8; margin-bottom: 1.25rem;">Scan with mobile phone camera to launch cockpit instantly on phone or tablet.</p>
+        <div style="display: flex; gap: 0.75rem; justify-content: center; flex-wrap: wrap;">
+          <a href="./CraneLab_Offline_Release.html" download="CraneLab_Offline_Release.html" class="btn-primary" style="text-decoration: none; display: inline-flex; align-items: center; gap: 0.5rem;">
+            💾 Download Single-File Offline Bundle (.html)
+          </a>
+          <button type="button" class="btn-aux" onclick="document.getElementById('modal-venue-link').style.display = 'none';">
+            Close
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
 </body>
 </html>
 
