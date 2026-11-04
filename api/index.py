@@ -326,3 +326,4 @@ class handler(BaseHTTPRequestHandler):
             "path": self.path,
             "supported_post": ["/api/v1/telemetry/submit", "/api/v1/iot/packet", "/api/v1/leaderboard/sync"]
         })
+
